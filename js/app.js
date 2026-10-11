@@ -7,8 +7,10 @@ const partida = { modo: MODOS.INVIERNO, dificultad: 'normal' };
 // juego funciona igual, sólo que sin récord.
 const RECORD_KEY = 'colmena.records.v1';
 function leerRecords() {
-  try { return JSON.parse(localStorage.getItem(RECORD_KEY)) || {}; } catch { return {}; }
+  try { return objetoOVacio(JSON.parse(localStorage.getItem(RECORD_KEY))); } catch { return {}; }
 }
+// Lo guardado sólo vale si es un objeto (no lista, número ni texto), como en las demás lecturas.
+function objetoOVacio(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
 // `menos`: gana el valor más bajo (los turnos de Expansión, v10.1); si no, el
 // más alto (los puntos).
 function guardarRecord(clave, puntos, menos = false) {
@@ -172,7 +174,6 @@ function leerPartida() {
   if (!s || s.gameOver || s.turn < 1) { borrarPartida(); return null; }
   return { s, duracion: Number.isFinite(g.duracion) && g.duracion >= 0 ? g.duracion : 0 };
 }
-function hayPartidaGuardada() { return !!leerPartida(); }
 // «Invierno · Normal · turno 47 · 3.120 puntos». Panal libre no tiene
 // dificultad ni puntos; Expansión tiene dificultad (v10.1) pero no puntos.
 function describirPartida(s) {
@@ -502,8 +503,8 @@ function abrirOpinion(datos) {
   if (!caja.children.length) {
     caja.innerHTML = OPINION_PREGUNTAS.map((p, i) => {
       const ph = p.ayuda ? ` placeholder="${p.ayuda}"` : '';
-      const campo = p.largo ? `<textarea name="${p.entry}" rows="2"${ph}></textarea>`
-        : `<input name="${p.entry}" type="text" autocomplete="${i === OPINION_PREGUNTAS.length - 1 ? 'email' : 'name'}"${ph}>`;
+      const campo = p.largo ? `<textarea name="${p.entry}" rows="2" maxlength="${OPINION_MAX.largo}"${ph}></textarea>`
+        : `<input name="${p.entry}" type="text" maxlength="${OPINION_MAX.corto}" autocomplete="${i === OPINION_PREGUNTAS.length - 1 ? 'email' : 'name'}"${ph}>`;
       return `<label>${p.texto}${campo}</label>`;
     }).join('');
   }
@@ -517,12 +518,36 @@ function abrirOpinion(datos) {
   h.getBoundingClientRect();                 // fuerza el estilo de partida para que haya transición
   h.classList.add('abierta'); velo.classList.add('abierta');
   caja.scrollTop = 0;
+  ajustarOpinion();
+}
+// CR-16 (v11.17): con el teclado abierto, la hoja medía lo mismo y lo de abajo
+// (las otras preguntas, «Enviar») quedaba detrás del teclado, sin forma de bajar.
+// Mientras está abierta se ajusta a lo que se ve (visualViewport): abajo, hasta el
+// teclado; arriba, a lo que el navegador haya desplazado. Con la página ampliada
+// (scale > 1) no se toca: lo que encoge entonces es el zoom, no el teclado.
+function ajustarOpinion() {
+  const h = document.getElementById('opinion'), vv = typeof visualViewport !== 'undefined' ? visualViewport : null;
+  const suelta = () => { h.style.top = ''; h.style.bottom = ''; h.classList.remove('con-teclado'); };
+  if (!opinionDatos || !vv || vv.scale > 1.01) { suelta(); return; }
+  const tapado = Math.round(innerHeight - vv.offsetTop - vv.height);
+  if (tapado < 1) { suelta(); return; }
+  // Con el teclado no se ve la línea de privacidad: el sitio, para las preguntas.
+  h.classList.add('con-teclado');
+  h.style.bottom = tapado + 'px';
+  h.style.top = Math.round(vv.offsetTop + 12) + 'px';
+  const foco = document.activeElement;
+  if (foco && h.contains(foco) && foco.matches('textarea,input')) foco.scrollIntoView({ block: 'nearest' });
+}
+if (typeof visualViewport !== 'undefined' && visualViewport) {
+  visualViewport.addEventListener('resize', ajustarOpinion);
+  visualViewport.addEventListener('scroll', ajustarOpinion);
 }
 function cerrarOpinion() {
   if (!opinionDatos) return;
   opinionDatos = null;
   const h = document.getElementById('opinion'), velo = document.getElementById('opinion-fondo');
   document.activeElement && h.contains(document.activeElement) && document.activeElement.blur();
+  ajustarOpinion();
   h.classList.remove('abierta'); velo.classList.remove('abierta');
   opinionCierre = setTimeout(() => { h.hidden = true; velo.hidden = true; }, 250);
   if (opinionOrigen && document.contains(opinionOrigen) && opinionOrigen.offsetParent) opinionOrigen.focus({ preventScroll: true });
@@ -2078,7 +2103,7 @@ function marcarBasicoVisto() {
 // La última dificultad elegida en cada modo, en el dispositivo.
 const DIF_KEY = 'colmena.dificultad.v1';
 function leerDificultades() {
-  try { return JSON.parse(localStorage.getItem(DIF_KEY)) || {}; } catch { return {}; }
+  try { return objetoOVacio(JSON.parse(localStorage.getItem(DIF_KEY))); } catch { return {}; }
 }
 function dificultadElegida(modo) {
   const d = leerDificultades()[modo];

@@ -489,7 +489,7 @@ function tieneDificultad(modo) {
 // jugando en el móvil no hay forma de saber si lo que tienes delante es lo
 // último que se subió.
 // Se mantiene a mano y tiene que coincidir con package.json (ver Recetas).
-const VERSION = 'v11.16';
+const VERSION = 'v11.17';
 
 // Opinar (v11.14, T-56, §5.107; dentro del juego desde la v11.16, §5.109): una hoja
 // del juego con las preguntas del formulario de Google; al enviar, el juego manda
@@ -508,6 +508,8 @@ const OPINION_PREGUNTAS = [
   { entry: 'entry.1083438825', texto: 'Tu nombre', ayuda: 'Opcional, si quieres que te responda' },
   { entry: 'entry.1276655054', texto: 'Correo u otro contacto', ayuda: 'Opcional' },
 ];
+// Lo más largo que se puede escribir en cada cuadro (v11.17): las preguntas y el nombre o contacto.
+const OPINION_MAX = { largo: 2000, corto: 100 };
 const OPINION_CAMPOS = { version: 'entry.1031068515', modo: 'entry.1550420656', codigo: 'entry.1150654629' };
 
 const NOMBRE_MODO = {

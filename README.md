@@ -66,7 +66,7 @@ js/state.js       estado y reglas: funciones puras, sin DOM y con azar con semil
 js/bot-tonto.js   el jugador más sencillo (también mueve el panal de la portada)
 js/guardado.js    la partida a medias: convertir y validar, sin tocar localStorage
 js/historial.js   el código de cada partida y Tus partidas: funciones puras
-js/puzles.js      los niveles del modo Puzzle (sólo datos)
+js/puzles.js      los niveles del modo Puzzle (datos; las soluciones, cifradas)
 js/tutorial.js    los niveles del tutorial (sólo datos)
 js/pista.js       la pista de Puzzle, con el buscador de la máquina
 js/render.js      canvas: el panal en falso 2.5D

@@ -100,9 +100,9 @@ const hilosDe = a => Math.max(1, Number(a.hilos) || os.cpus().length);
 async function principal() {
   const [orden, ...resto] = process.argv.slice(2);
   const a = leerArgs(resto);
-  const ordenes = { generar, comprobar: comprobarLote, evaluar: evaluarLote, resumen, meter, verificar, repescar };
+  const ordenes = { generar, comprobar: comprobarLote, evaluar: evaluarLote, resumen, meter, verificar, reescribir, repescar };
   if (!ordenes[orden]) {
-    console.error('Uso: npm run puzles -- generar | comprobar | evaluar | resumen | meter | verificar | repescar  (ver puzles/cli.js)');
+    console.error('Uso: npm run puzles -- generar | comprobar | evaluar | resumen | meter | verificar | reescribir | repescar  (ver puzles/cli.js)');
     process.exit(1);
   }
   await ordenes[orden](a);
@@ -432,9 +432,53 @@ async function meter(a) {
   console.log('Siguiente: npm test, jugarlo, y el commit. El push publica el juego: lo decide Iñigo.');
 }
 
+// Las soluciones van cifradas en js/puzles.js (v11.17, revisión §8): que quien abra el
+// fichero no las lea de un vistazo. No es seguridad (el juego las necesita en el
+// navegador y el descifrado va al lado), sólo que no se lean sin querer. Cada celda
+// (y un separador, 63, al acabar cada jugada) se suma a una serie pseudoaleatoria
+// que sale del id del nivel, módulo 64, y se escribe con este alfabeto.
+// DESCIFRAR_SOLUCION es lo que deshace esto; se copia tal cual en js/puzles.js.
+const ALFABETO_SOLUCION = 'Kq7ZbX2mVfJ0sLcT9wRyH4nEgP1dUoA8iQx6BzMe3WtGkYa5NvhSjCpDrFul_-IO';
+function serieSolucion(id) {
+  let s = 2166136261;
+  for (const ch of id) s = Math.imul(s ^ ch.charCodeAt(0), 16777619);
+  return () => { s = (Math.imul(s, 1103515245) + 12345) >>> 0; return (s >>> 16) & 63; };
+}
+function cifrarSolucion(id, solucion) {
+  const k = serieSolucion(id);
+  const vals = [];
+  for (const jugada of solucion) {
+    for (const c of jugada) { if (!Number.isInteger(c) || c < 0 || c > 62) throw new Error(`${id}: celda ${c} no cabe en el cifrado`); vals.push(c); }
+    vals.push(63);
+  }
+  return vals.map(v => ALFABETO_SOLUCION[(v + k()) & 63]).join('');
+}
+const DESCIFRAR_SOLUCION = `function descifrarSolucion(id, txt) {
+  const A = ${JSON.stringify(ALFABETO_SOLUCION)};
+  let s = 2166136261;
+  for (const ch of id) s = Math.imul(s ^ ch.charCodeAt(0), 16777619);
+  const out = [];
+  let jugada = [];
+  for (const ch of txt) {
+    s = (Math.imul(s, 1103515245) + 12345) >>> 0;
+    const v = (A.indexOf(ch) - ((s >>> 16) & 63)) & 63;
+    if (v === 63) { out.push(jugada); jugada = []; } else jugada.push(v);
+  }
+  return out;
+}`;
+
+// reescribir: js/puzles.js otra vez, con lo mismo dentro (para cuando cambia el formato,
+// como el cifrado de las soluciones de la v11.17). No vuelve a comprobar nada: eso es verificar.
+function reescribir() {
+  const { CAPITULOS, PUZLES } = leerPuzlesJs();
+  const provisional = PUZLES.some(p => p.origen && p.origen.provisional);
+  escribirPuzlesJs(CAPITULOS, PUZLES, provisional);
+  console.log(`js/puzles.js reescrito: ${PUZLES.length} niveles. Siguiente: npm run puzles -- verificar y npm test.`);
+}
+
 // Siempre igual para el mismo contenido: un nivel por línea, para que el diff se lea.
 function escribirPuzlesJs(CAPITULOS, PUZLES, provisional) {
-  const linea = p => '  ' + JSON.stringify(p) + ',';
+  const linea = p => '  ' + JSON.stringify({ ...p, solucion: cifrarSolucion(p.id, p.solucion) }) + ',';
   fs.writeFileSync(PUZLES_JS, `// Los niveles del modo Puzzle (v11). Los escribe \`npm run puzles -- meter\`, no a mano:
 // cada uno lo ha generado la máquina de puzles/, lo ha demostrado el resolutor, lo
 // ha rejugado el comprobador, lo ha ganado el juego con ★★★ y lo ha elegido Iñigo.
@@ -446,6 +490,9 @@ ${CAPITULOS.map(c => '  ' + JSON.stringify(c) + ',').join('\n')}
 const PUZLES = [
 ${PUZLES.map(linea).join('\n')}
 ];
+// Las soluciones, cifradas para que no se lean de un vistazo (v11.17): se descifran al cargar.
+${DESCIFRAR_SOLUCION}
+for (const p of PUZLES) p.solucion = descifrarSolucion(p.id, p.solucion);
 `);
 }
 

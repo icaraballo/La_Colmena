@@ -1773,5 +1773,28 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   eq(pkg.version, '0.' + v, 'package.json y VERSION dicen la misma versión');
 }
 
+// --- la revisión de la v11.17 ---------------------------------------------------------------------
+{
+  const fs = require('fs'), path = require('path');
+  const raiz = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  const html = raiz('index.html');
+  // §9: la CSP, sin scripts dentro del HTML ni onclick= (la CSP los bloquearía).
+  const csp = (html.match(/http-equiv="Content-Security-Policy" content="([^"]+)"/) || [])[1] || '';
+  ok(/script-src 'self'(;|$)/.test(csp), "la CSP sólo deja scripts propios");
+  ok(/connect-src https:\/\/docs\.google\.com/.test(csp) && T.OPINION_FORM.startsWith('https://docs.google.com/'), 'la CSP deja enviar a opinar');
+  ok(![...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g)].length, 'ningún <script> dentro del HTML');
+  ok(!/\son[a-z]+="/.test(html), 'ningún onclick= ni parecido en el HTML');
+  // §2: se puede ampliar.
+  ok(!/user-scalable\s*=\s*no/.test(html), 'el viewport no prohíbe ampliar');
+  // §8: las soluciones de js/puzles.js no se leen en el fichero, pero el juego las descifra.
+  const pz = raiz('js/puzles.js');
+  ok(!/"solucion":\[/.test(pz), 'js/puzles.js no lleva las soluciones a la vista');
+  ok(T.PUZLES.every(p => Array.isArray(p.solucion) && p.solucion.length === p.minimo && p.solucion.every(j => Array.isArray(j) && j.length)), 'y descifradas tienen una jugada por turno del mínimo');
+  // §7: opinar tiene límite.
+  eq(T.OPINION_MAX.largo, 2000, 'opinar: 2000 caracteres por pregunta');
+  eq(T.OPINION_MAX.corto, 100, 'opinar: 100 en nombre y contacto');
+  ok(/op-privacidad">Se envía a un formulario de Google/.test(html), 'opinar dice qué se envía y adónde');
+}
+
 console.log(`${total - fallos}/${total} comprobaciones correctas`);
 if (fallos) process.exit(1);

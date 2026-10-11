@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<!-- Qué puede cargar la página (v11.17, revisión §9): scripts e imágenes sólo
+     propios; estilos propios y los de dentro del HTML; conectarse sólo al formulario
+     de Google de opinar. Si algún día se carga algo de fuera, hay que añadirlo aquí. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src https://docs.google.com; object-src 'none'; base-uri 'none'; form-action 'self'">
 <title>La Colmena</title>
 <!-- La tarjeta del enlace (v11.14, T-56): lo que sale al pegarlo en LinkedIn o
      WhatsApp. og:image va con la dirección absoluta (las redes no resuelven rutas). -->
@@ -111,7 +115,7 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
 .modo-fila.pequena .txt{flex-direction:row;align-items:baseline;justify-content:space-between;gap:8px}
 .modo-fila.pequena .nom{font-size:14px}
 .modo-fila.pequena .frase{font-size:12px}
-#inicio-version{align-self:center;font-size:11px;color:#6d6150;font-variant-numeric:tabular-nums}
+#inicio-version{align-self:center;font-size:11px;color:#8c7f6a;font-variant-numeric:tabular-nums}
 
 /* La barra de la partida (v9): sustituye a la fila de modos. Menú, el modo y
    la dificultad, y la semilla. */
@@ -189,7 +193,7 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
    la tarjeta suelta): se ve tocable por el subrayado de puntos y la «i», sin
    ocupar sitio nuevo. */
 .plagas-titulo{all:unset;cursor:pointer;display:inline-block;white-space:pre-wrap;
-  border-bottom:1px dashed #6d6150;padding-bottom:1px}
+  border-bottom:1px dashed #8c7f6a;padding-bottom:1px}
 .plagas-titulo:focus-visible{outline:2px solid #F79A1F;outline-offset:2px}
 .plagas-titulo .info{vertical-align:1px}
 
@@ -202,7 +206,7 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
 .escalon svg{width:28px;height:25px;display:block}
 .escalon em{font-style:normal;font-size:12px;color:#9fd67a;margin-left:6px;white-space:nowrap}
 .plagas-fila{display:flex;align-items:flex-start;justify-content:center;gap:0}
-.plagas-fila .extremo{font-size:9px;color:#6d6150;text-transform:uppercase;letter-spacing:.06em;
+.plagas-fila .extremo{font-size:9px;color:#8c7f6a;text-transform:uppercase;letter-spacing:.06em;
   width:34px;padding-top:15px;flex:none}
 .plagas-fila .extremo.der{text-align:right}
 .plaga{display:flex;flex-direction:column;align-items:center;width:52px;flex:none;cursor:pointer;user-select:none}
@@ -265,7 +269,7 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
 #pop b{color:#ede4d3;display:block;margin-bottom:2px}
 #pop .difs{display:flex;gap:5px;padding:0}
 #pop button{padding:5px 12px;font-size:13px}
-#pop .nota{display:block;margin-top:6px;color:#6d6150;font-size:11px}
+#pop .nota{display:block;margin-top:6px;color:#8c7f6a;font-size:11px}
 #pop input{
   width:100%;margin:2px 0 6px;padding:6px 8px;font:inherit;font-size:14px;
   background:#12100C;color:#ede4d3;border:1px solid #43372a;border-radius:7px;
@@ -403,7 +407,7 @@ footer .sem.copiada{color:#9fd67a}
 .hoja-modos .puntos{display:flex;align-items:center;gap:5px}
 .hoja-modos .puntos span{width:6px;height:6px;border-radius:3px;background:#43372a}
 .hoja-modos .puntos span.actual{width:18px;background:var(--color-modo)}
-.hoja-modos em{font-style:normal;font-size:11px;color:#6d6150}
+.hoja-modos em{font-style:normal;font-size:11px;color:#8c7f6a}
 .hoja-botones{display:flex;gap:10px;flex:none}
 #hoja-menu{flex:0 0 104px}
 #hoja-empezar,#hoja-volver{flex-grow:1}
@@ -418,7 +422,7 @@ canvas{display:block;touch-action:none;position:absolute;left:0;top:0}
 /* El pie: una línea, la semilla. Desde la v9 la versión va al inicio, la
    dificultad a la barra y las instrucciones a la hoja. */
 footer{
-  color:#6d6150;font-size:11px;padding:6px 2px 10px;
+  color:#8c7f6a;font-size:11px;padding:6px 2px 10px;
   display:flex;gap:10px;align-items:center;flex-wrap:wrap;
 }
 footer .sem{font-variant-numeric:tabular-nums}
@@ -490,7 +494,8 @@ footer .sem{font-variant-numeric:tabular-nums}
 #fin .pz-abierto{flex-basis:100%;font-size:13px;color:#c9b99c}
 #fin .pz-abierto b{display:inline;font-size:13px;color:#F28FB1}
 #fin .estrellas{font-size:40px;letter-spacing:6px;color:#F79A1F;line-height:1.1}
-#fin .estrellas .vacia{color:#4d4232}
+/* Las que faltan, apagadas pero contables (v11.17, revisión §11: de 1,9:1 a ~3,5:1). */
+#fin .estrellas .vacia{color:#75684f}
 #fin-volver{all:unset;cursor:pointer;display:block;margin:12px auto 0;font-size:14px;color:#9a8d77;padding:6px 10px}
 #fin-volver:hover{color:#c9b99c}
 #fin-volver:focus-visible{outline:2px solid #F79A1F;border-radius:6px}
@@ -625,7 +630,7 @@ footer .sem{font-variant-numeric:tabular-nums}
 #pop.semilla-inicio{width:min(300px,calc(100vw - 32px));max-width:none;padding:12px 14px;border-radius:14px}
 #pop.semilla-inicio b{font-size:14px;margin-bottom:6px}
 #pop input.codigo{font-family:ui-monospace,Menlo,monospace;font-size:15px;padding:9px 10px;text-transform:uppercase}
-#pop input.codigo::placeholder{text-transform:none;color:#6d6150}
+#pop input.codigo::placeholder{text-transform:none;color:#8c7f6a}
 #pop input.codigo.vale{border-color:#9fd67a}
 #pop .sem-estado{display:block;min-height:18px;margin:-2px 0 8px;font-size:13px;font-weight:600}
 #pop .sem-aviso{display:block;margin:0 0 8px;font-size:12px;color:#8c7f6a}
@@ -680,12 +685,15 @@ footer .sem{font-variant-numeric:tabular-nums}
   border:1px solid #43372a;border-radius:10px;padding:9px 11px;width:100%;resize:none}
 .op-preguntas textarea{min-height:66px}
 .op-preguntas textarea:focus,.op-preguntas input:focus{outline:none;border-color:#F79A1F}
-.op-preguntas ::placeholder{color:#6d6150}
+.op-preguntas ::placeholder{color:#8c7f6a}
 .op-aviso{font-size:13px;color:#ff9a7a;min-height:0;flex:none}
 .op-aviso:empty{display:none}
 .op-enviar{flex:none;min-height:50px;border:0;border-radius:14px;background:#F79A1F;color:#231500;font-size:16px;font-weight:700}
 .op-enviar:hover{background:#ffa93a}
 .op-enviar:disabled{opacity:.55}
+/* Qué se envía y adónde (v11.17, revisión §3): bajo «Enviar», en el gris secundario. */
+.op-privacidad{flex:none;margin-top:-4px;font-size:12px;line-height:1.35;color:#8c7f6a;text-align:center}
+#opinion.con-teclado .op-privacidad{display:none}
 .op-gracias{display:flex;flex-direction:column;flex:1 1 auto}
 .op-gracias[hidden]{display:none}
 .op-ok{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
@@ -746,7 +754,7 @@ footer .sem{font-variant-numeric:tabular-nums}
 .hist-lista{flex:1 1 auto;min-height:0;overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;
   padding:12px 14px 20px;display:flex;flex-direction:column;gap:8px}
 .hist-lista > *{flex:none}
-.hist-puntos{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#6d6150}
+.hist-puntos{display:flex;align-items:center;justify-content:center;gap:6px;font-size:11px;color:#8c7f6a}
 .hist-puntos span{width:6px;height:6px;border-radius:3px;background:#43372a}
 .hist-puntos span.actual{width:18px;background:var(--c)}
 .hist-puntos em{font-style:normal;margin-left:4px}
@@ -767,7 +775,7 @@ footer .sem{font-variant-numeric:tabular-nums}
 .hist-dcha{display:flex;align-items:center;gap:2px}
 .hist-estrella{display:grid;place-items:center;width:36px;height:36px;margin:-8px 0 -8px -6px;padding:0;background:transparent;border:0}
 .hist-estrella:hover{background:transparent}
-.hist-estrella path{fill:none;stroke:#6d6150}
+.hist-estrella path{fill:none;stroke:#8c7f6a}
 .hist-estrella[aria-pressed="true"] path{fill:#ffd23f;stroke:#ffd23f}
 .hist-det{font-size:12px;color:#9a8d77}
 .hist-f3{display:flex;align-items:center;gap:8px;margin-top:5px}
@@ -790,7 +798,7 @@ footer .sem{font-variant-numeric:tabular-nums}
 .hist-vacio b{font-size:15px;font-weight:700;color:#ede4d3}
 .hist-vacio span{font-size:13px;color:#9a8d77}
 .hist-vacio .primario{min-height:44px;padding:0 24px;font-size:14px}
-.hist-pie{margin:8px 4px 0;font-size:11.5px;line-height:1.45;color:#6d6150;text-align:center}
+.hist-pie{margin:8px 4px 0;font-size:11.5px;line-height:1.45;color:#8c7f6a;text-align:center}
 .enlace-velo{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(18,16,12,.72)}
 .enlace-velo[hidden]{display:none}
 .enlace-caja{width:100%;max-width:340px;background:#1c1710;border:1px solid #43372a;border-radius:16px;padding:20px 18px 16px;text-align:center}
@@ -804,6 +812,17 @@ footer .sem{font-variant-numeric:tabular-nums}
 .enlace-botones .primario{flex:1.2;min-height:48px}
 .aviso-abajo{position:fixed;left:14px;right:14px;bottom:calc(20px + env(safe-area-inset-bottom));max-width:480px;margin:0 auto;z-index:25;
   background:#2a2218;border:1px solid #9fd67a;border-radius:12px;padding:10px 12px;font-size:13px;color:#ede4d3}
+/* Zona de toque de ~44 px sin cambiar el dibujo (v11.17, revisión §12): la (i)
+   medía 20×14, las flechas de la ficha 20×20, y el título de las plagas y la
+   semilla, 17 y 15 de alto. Un ::after transparente recibe el toque alrededor.
+   Al final del CSS: los `all:unset` de esos botones borrarían el position. */
+.info-btn,.hoja-modos button,.plagas-titulo,footer .sem{position:relative}
+.info-btn::after,.hoja-modos button::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
+.info-btn::after{margin-left:3px}
+/* En la barra de datos la (i) queda justo bajo «Menú»: su zona crece hacia abajo
+   (hacia el número, que no se toca) y no le quita el borde de abajo. */
+.lbl .info-btn::after{height:36px;transform:translate(-50%,-36%)}
+.plagas-titulo::after,footer .sem::after{content:'';position:absolute;inset:-14px -6px}
 </style>
 </head>
 <body>
@@ -869,40 +888,40 @@ footer .sem{font-variant-numeric:tabular-nums}
     <button class="modo-fila" data-modo="contrarreloj">
       <svg width="34" height="30" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#F79A1F"/><g stroke="#1c1710" stroke-width="3" fill="none" stroke-linecap="round"><circle cx="23" cy="21" r="9"/><path d="M23 15v6l4 3"/></g></svg>
       <span class="txt"><span class="nom" data-nombre="contrarreloj"></span><span class="frase" data-frase="contrarreloj"></span></span>
-      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button class="modo-fila" data-modo="invierno">
       <svg width="34" height="30" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#9CC3D8"/><g stroke="#1c1710" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M23 10v21M14 15.5l18 10M14 25.5l18-10"/></g></svg>
       <span class="txt"><span class="nom" data-nombre="invierno"></span><span class="frase" data-frase="invierno"></span></span>
-      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button class="modo-fila" data-modo="contagio">
       <svg width="34" height="30" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#C79BD9"/><g fill="#1c1710"><circle cx="19" cy="22" r="6"/><circle cx="30" cy="15" r="3"/><circle cx="31" cy="27" r="2.3"/></g></svg>
       <span class="txt"><span class="nom" data-nombre="contagio"></span><span class="frase" data-frase="contagio"></span></span>
-      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button class="modo-fila" data-modo="expansion">
       <svg width="34" height="30" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#E6B872"/><polygon points="23,14 29,17 29,24 23,27 17,24 17,17" fill="#1c1710"/><g stroke="#1c1710" stroke-width="2.4" stroke-linecap="round"><path d="M23 11V6M34 16l4-2M34 26l4 2M23 30v5M12 26l-4 2M12 16l-4-2"/></g></svg>
       <span class="txt"><span class="nom" data-nombre="expansion"></span><span class="frase" data-frase="expansion"></span></span>
-      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <button class="modo-fila" data-modo="puzzle">
       <svg width="34" height="30" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#F28FB1"/><g fill="#1c1710"><rect x="15" y="12" width="7" height="7" rx="1.5"/><rect x="24" y="12" width="7" height="7" rx="1.5"/><rect x="15" y="21" width="7" height="7" rx="1.5"/></g><rect x="24" y="21" width="7" height="7" rx="1.5" fill="none" stroke="#1c1710" stroke-width="1.8"/></svg>
       <span class="txt"><span class="nom" data-nombre="puzzle"></span><span class="frase" data-frase="puzzle"></span></span>
-      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <h2 class="modos-grupo">Practicar</h2>
     <button class="modo-fila pequena" data-modo="libre">
       <svg width="24" height="21" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#9fd67a"/><path d="M15 21l6 6 11-13" stroke="#1c1710" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <span class="txt"><span class="nom" data-nombre="libre"></span><span class="frase" data-frase="libre"></span></span>
-      <svg width="8" height="13" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="8" height="13" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
     <!-- El tutorial (v11.2, T-49): repetirlo desde el inicio. -->
     <h2 class="modos-grupo">Aprender</h2>
     <button class="modo-fila pequena" id="repetir-tutorial">
       <svg width="24" height="21" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#E3C87E"/><g stroke="#1c1710" stroke-width="3" fill="none" stroke-linecap="round"><path d="M18 16a5 5 0 1 1 7 4.6c-1.3.6-2 1.6-2 3V25"/></g><circle cx="23" cy="30" r="2" fill="#1c1710"/></svg>
       <span class="txt"><span class="nom">Repetir el tutorial</span><span class="frase" id="tutorial-cuantos"></span></span>
-      <svg width="8" height="13" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#6d6150" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <svg width="8" height="13" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
 
     <span id="inicio-version"></span>
@@ -1334,10 +1353,10 @@ footer .sem{font-variant-numeric:tabular-nums}
   <div class="hoja-dif" id="hoja-dif"></div>
 
   <div class="hoja-modos" id="hoja-modos">
-    <button id="hoja-modo-ant" aria-label="Modo anterior"><svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M6 1L1 6l5 5" stroke="#6d6150" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
+    <button id="hoja-modo-ant" aria-label="Modo anterior"><svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M6 1L1 6l5 5" stroke="#8c7f6a" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
     <span class="puntos" id="hoja-puntos"></span>
     <em>desliza para ver otro modo</em>
-    <button id="hoja-modo-sig" aria-label="Modo siguiente"><svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l5 5-5 5" stroke="#6d6150" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
+    <button id="hoja-modo-sig" aria-label="Modo siguiente"><svg width="8" height="12" viewBox="0 0 8 12" aria-hidden="true"><path d="M2 1l5 5-5 5" stroke="#8c7f6a" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg></button>
   </div>
 
   <p class="hoja-aviso" id="hoja-aviso" hidden></p>
@@ -1361,6 +1380,7 @@ footer .sem{font-variant-numeric:tabular-nums}
     <div class="op-preguntas" id="opinion-preguntas"></div>
     <p class="op-aviso" id="opinion-aviso" role="status"></p>
     <button type="submit" class="op-enviar" id="opinion-enviar">Enviar</button>
+    <p class="op-privacidad">Se envía a un formulario de Google con la versión y la partida. Nombre y contacto, sólo si los pones.</p>
   </form>
   <div class="op-gracias" id="opinion-gracias" hidden>
     <div class="op-ok"><svg width="64" height="56" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#9fd67a"/><path d="M15 21l6 6 11-13" stroke="#1c1710" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1388,24 +1408,24 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.16"></script>
-<script src="js/state.js?v=11.16"></script>
-<script src="js/bot-tonto.js?v=11.16"></script>
-<script src="js/guardado.js?v=11.16"></script>
+<script src="js/constants.js?v=11.17"></script>
+<script src="js/state.js?v=11.17"></script>
+<script src="js/bot-tonto.js?v=11.17"></script>
+<script src="js/guardado.js?v=11.17"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.16"></script>
-<script src="js/render.js?v=11.16"></script>
-<script src="js/input.js?v=11.16"></script>
+<script src="js/historial.js?v=11.17"></script>
+<script src="js/render.js?v=11.17"></script>
+<script src="js/input.js?v=11.17"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.16"></script>
+<script src="js/puzles.js?v=11.17"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.16"></script>
+<script src="js/tutorial.js?v=11.17"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.16"></script>
-<script src="puzles/buscador.js?v=11.16"></script>
-<script src="puzles/juego.js?v=11.16"></script>
-<script src="js/pista.js?v=11.16"></script>
-<script src="js/app.js?v=11.16"></script>
+<script src="puzles/objetivos.js?v=11.17"></script>
+<script src="puzles/buscador.js?v=11.17"></script>
+<script src="puzles/juego.js?v=11.17"></script>
+<script src="js/pista.js?v=11.17"></script>
+<script src="js/app.js?v=11.17"></script>
 </body>
 </html>

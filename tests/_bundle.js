@@ -54,7 +54,7 @@ const FOOTER = `
      PREFIJO_MODO, LETRA_DIF, MODOS_HISTORIAL, HISTORIAL_POR_LISTA, HISTORIAL_VERSION, historialVacio,
      jugadasValidas, codigoPartida, leerCodigo, codigoDeBusqueda, enlacePartida, textoCompartir, entradaDePartida, listaDe, todas, recordDe, apuntarEnHistorial,
      marcarEstrella, leerHistorial, rejugarPartida, EXTRAS_GUARDADO, NOMBRE_DIF, VERSION,
-     OPINION_FORM, OPINION_PREGUNTAS, OPINION_CAMPOS, destinoOpinion, cuerpoOpinion,
+     OPINION_FORM, OPINION_PREGUNTAS, OPINION_CAMPOS, OPINION_MAX, destinoOpinion, cuerpoOpinion,
      MODOS_TARJETA, tarjetaPlaga, tarjetaHelada, tablaCosecha, sinMarcas, milesES })
 `;
 
