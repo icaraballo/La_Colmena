@@ -1736,10 +1736,12 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
     ok(!/contagio|contrarreloj|reloj/i.test(todo), `${q}: no menciona el otro modo ni el reloj`);
     ok(!/[*_]/.test(todo), `${q}: sinMarcas quita las marcas`);
     if (tipo === 'seda') tiene(todo, `bloqueadas ${T.SEDA_TURNOS} turnos`, `${q}: los turnos de seda`);
+    if (tipo === 'seda') tiene(todo, `hasta que pasen los ${T.SEDA_TURNOS} turnos`, `${q}: cuándo se va la seda (v11.18)`);
     if (tipo === 'velutina') { tiene(todo, `${V} celdas`, `${q}: las celdas de la velutina`); tiene(todo, `${T.CALMA_TRAS_VELUTINA} turnos de calma`, `${q}: la calma`); }
     if (modo === 'contrarreloj' || tipo === 'seda' || tipo === 'velutina') tiene(todo, G, `${q}: la cosecha grande`);
     if (modo === 'contagio' && (tipo === 'varroa' || tipo === 'velutina')) tiene(todo, `cada ${T.CONTAGIO_CADA[dif]} turnos`, `${q}: cada cuánto se contagia`);
-    if (modo === 'contagio' && tipo === 'varroa') tiene(todo, `resta ${T.milesES(T.HUELLA_RESTA)} puntos`, `${q}: lo que resta cada marca`);
+    if (modo === 'contagio' && tipo !== 'seda') tiene(todo, `resta ${T.milesES(T.HUELLA_RESTA)} puntos`, `${q}: lo que resta cada marca`);
+    eq(t.etiquetaConsulta, `Plaga · ${T.DESASTRE_INFO[tipo].peldano} de 4`, `${q}: la etiqueta al tocarla (v11.18)`);
     ok((modo === 'contagio') === /_.+_/.test(t.pasa) || tipo === 'seda', `${q}: las marcas en morado, sólo en Contagio`);
   }
   eq(T.tarjetaPlaga('invierno', 'varroa'), null, 'tarjetas: Invierno no tiene tarjetas de plaga');
@@ -1750,6 +1752,7 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
     const t = T.tarjetaHelada(dif), n = T.HELADA_MUERDE[dif];
     tiene(T.sinMarcas(t.pasa), n === 1 ? 'rompe 1 celda del borde' : `rompe ${n} celdas del borde`, `helada ${dif}: las celdas que rompe`);
     ok(t.tabla === null && !t.reloj, `helada ${dif}: sin tabla y sin reloj`);
+    eq(t.etiquetaConsulta, 'Helada', `helada ${dif}: al tocar la línea, «Helada»`);
     tiene(t.quita, 'humo', `helada ${dif}: el humo`);
   }
   // La tabla de la cosecha grande, de peldanosQueBaja: 5-6 baja 1 · 7 baja 2 · 8 baja 3 · 9+ todas.

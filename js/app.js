@@ -346,7 +346,14 @@ function celdaPlaga(tipo) {
   c.setAttribute('aria-label', `${info.nombre}: ${que}`);
   c.innerHTML = `<svg viewBox="0 0 46 40" aria-hidden="true"><polygon points="${HEX}"/><text x="23" y="20"></text></svg><span class="et"></span>`;
   c.querySelector('text').textContent = info.simbolo;
-  conPanel(c);
+  // Tocarla abre su tarjeta (v11.18); con ratón, pasar por encima sigue dando el recuadro.
+  c.setAttribute('role', 'button'); c.tabIndex = 0;
+  c.addEventListener('click', () => consultarTarjeta(tipo));
+  c.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); consultarTarjeta(tipo); } });
+  if (matchMedia('(hover:hover)').matches) {
+    c.addEventListener('pointerenter', () => { if (!tarjetaAbierta) { cerrarPop(); abrirPop(c, panelChip(c)); } });
+    c.addEventListener('pointerleave', () => { if (popAncla === c) cerrarPop(); });
+  }
   return c;
 }
 
@@ -921,34 +928,65 @@ function programarTarjeta(clave, tipo, espera) {
   }, espera);
 }
 const HEX_HELADA = `<svg viewBox="0 0 46 40" aria-hidden="true"><polygon points="${HEX}" fill="#7fd4ff"/><g stroke="#1c1710" stroke-width="2.6" stroke-linecap="round" fill="none"><path d="M23 10v21M14 15.5l18 10M14 25.5l18-10"/></g></svg>`;
-function abrirTarjeta(clave, tipo) {
+// `consulta` (v11.18): la abre el jugador tocando la plaga o la línea de la helada.
+// Entonces no es «nueva», no se apunta como vista y, si es una plaga, lleva flechas
+// para pasar entre las ya descubiertas en este modo. Una plaga que aún no ha salido
+// nunca enseña sólo el nombre y TARJETA_AUN_NO, sin desvelar qué hace; la helada,
+// entera siempre (es la regla del modo, ya está en su ficha).
+function abrirTarjeta(clave, tipo, { consulta = false } = {}) {
   const t = tipo === 'helada' ? tarjetaHelada(S.dificultad) : tarjetaPlaga(S.modo, tipo, S.dificultad);
   if (!t) return;
+  const aunNo = consulta && tipo !== 'helada' && !tarjetaVista(clave);
+  const yaAbierta = !!tarjetaAbierta;
   cerrarPop();
   clearTimeout(tarjetaCierre);
   tarjetaAbierta = clave;
-  marcarTarjeta(clave);
+  if (!consulta) marcarTarjeta(clave);
   const el = document.getElementById('tarjeta'), fondo = document.getElementById('tarjeta-fondo');
   el.classList.toggle('helada', tipo === 'helada');
+  el.classList.toggle('aun-no', aunNo);
   document.getElementById('tarjeta-hex').innerHTML = tipo === 'helada' ? HEX_HELADA : hexMini(tipo, 'pisada');
-  setText('tarjeta-etiqueta', t.etiqueta);
+  setText('tarjeta-etiqueta', consulta ? t.etiquetaConsulta : t.etiqueta);
   setText('tarjeta-nombre', t.nombre);
-  document.getElementById('tarjeta-pasa').innerHTML = conMarcas(t.pasa);
+  document.getElementById('tarjeta-pasa').innerHTML = conMarcas(aunNo ? TARJETA_AUN_NO : t.pasa);
+  document.getElementById('tarjeta-quita').hidden = aunNo;
   document.getElementById('tarjeta-quita').classList.toggle('alerta', t.alerta);
   setText('tarjeta-ico', t.alerta ? '⚠' : '✓');
   document.getElementById('tarjeta-quita-txt').innerHTML = conMarcas(t.quita);
-  document.getElementById('tarjeta-tabla').hidden = !t.tabla;
+  // Las flechas: sólo entre las descubiertas, y sólo si hay más de una.
+  const vistas = tipo === 'helada' || aunNo ? [] : plagasDescubiertas();
+  const k = vistas.indexOf(tipo);
+  document.getElementById('tarjeta-flechas').hidden = !consulta || vistas.length < 2;
+  document.getElementById('tarjeta-ant').disabled = k <= 0;
+  document.getElementById('tarjeta-sig').disabled = k < 0 || k >= vistas.length - 1;
+  document.getElementById('tarjeta-tabla').hidden = !t.tabla || aunNo;
   if (t.tabla) {
     setText('tarjeta-tabla-tit', t.tabla);
     document.getElementById('tarjeta-casillas').innerHTML =
       tablaCosecha().map(f => `<div><b>${f.tam}</b><span>${f.baja}</span></div>`).join('');
   }
-  document.getElementById('tarjeta-todas').hidden = tipo === 'helada';
+  document.getElementById('tarjeta-todas').hidden = tipo === 'helada' || aunNo;
   document.getElementById('tarjeta-reloj').hidden = !t.reloj;
   el.hidden = false; fondo.hidden = false;
   el.getBoundingClientRect();                // para que haya transición
   el.classList.add('abierta'); fondo.classList.add('abierta');
-  document.getElementById('tarjeta-ok').focus({ preventScroll: true });
+  // Al pasar con las flechas, el foco se queda en ellas.
+  if (!yaAbierta) document.getElementById('tarjeta-ok').focus({ preventScroll: true });
+}
+// Las plagas de este modo cuya tarjeta ya ha salido, de la leve a la grave.
+function plagasDescubiertas() {
+  return DESASTRES_VISIBLES.filter(x => tarjetaVista(`${S.modo}.${x}`));
+}
+// Tocar una plaga de la fila o, en Invierno, la línea de la helada (v11.18).
+function consultarTarjeta(tipo) {
+  if (tarjetaAbierta || !S || S.gameOver) return;
+  abrirTarjeta(tipo === 'helada' ? 'invierno.helada' : `${S.modo}.${tipo}`, tipo, { consulta: true });
+}
+function pasarTarjeta(d) {
+  const tipo = tarjetaAbierta && tarjetaAbierta.split('.')[1];
+  const vistas = plagasDescubiertas(), k = vistas.indexOf(tipo);
+  if (k < 0 || !vistas[k + d]) return;
+  abrirTarjeta(`${S.modo}.${vistas[k + d]}`, vistas[k + d], { consulta: true });
 }
 function cerrarTarjeta() {
   clearTimeout(tarjetaEspera); tarjetaEspera = 0;
@@ -2833,6 +2871,11 @@ window.addEventListener('DOMContentLoaded', () => {
   // todas las plagas» abre la pestaña Plagas de la hoja del modo.
   document.getElementById('tarjeta-ok').addEventListener('click', cerrarTarjeta);
   document.getElementById('tarjeta-fondo').addEventListener('click', cerrarTarjeta);
+  document.getElementById('tarjeta-ant').addEventListener('click', () => pasarTarjeta(-1));
+  document.getElementById('tarjeta-sig').addEventListener('click', () => pasarTarjeta(1));
+  const helada = document.getElementById('helada');
+  helada.addEventListener('click', () => consultarTarjeta('helada'));
+  helada.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); consultarTarjeta('helada'); } });
   document.getElementById('tarjeta-todas').addEventListener('click', () => {
     cerrarTarjeta();
     abrirHoja({ desde: 'partida', modo: S.modo, pestana: 'plagas' });
@@ -2891,6 +2934,8 @@ window.addEventListener('DOMContentLoaded', () => {
       else if (fichaNivel) cerrarFichaNivel();
       else if (popAncla) cerrarPop();
       else if (pantalla === 'historial') document.getElementById('hist-menu').click();
+    } else if (tarjetaAbierta && !document.getElementById('tarjeta-flechas').hidden && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
+      pasarTarjeta(e.key === 'ArrowRight' ? 1 : -1);
     } else if (hojaAbierta && hojaAbierta.desde === 'ficha' && (e.key === 'ArrowLeft' || e.key === 'ArrowRight')) {
       cambiarModoFicha(e.key === 'ArrowRight' ? 1 : -1);
     }

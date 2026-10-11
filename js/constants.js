@@ -419,7 +419,7 @@ function tarjetaPlaga(modo, tipo, dificultad = 'normal') {
   const G = COSECHA_GRANDE, V = VELUTINA_CELDAS.join('-'), cada = CONTAGIO_CADA[dificultad] || CONTAGIO_CADA.normal;
   const seda = {
     pasa: `El capullo ha eclosionado: sus celdas vecinas quedan **bloqueadas ${SEDA_TURNOS} turnos**.`,
-    quita: `La seda **no se quita**: juega por otro lado hasta que se suelte. Una cosecha de **${G}** o más sí te baja de la escalera.`,
+    quita: `La seda **no se quita**: juega por otro lado **hasta que pasen los ${SEDA_TURNOS} turnos**. Una cosecha de **${G}** o más sí te baja de la escalera.`,
     alerta: true,
   };
   const textos = modo === 'contrarreloj' ? {
@@ -434,25 +434,29 @@ function tarjetaPlaga(modo, tipo, dificultad = 'normal') {
     varroa:   { pasa: `Al fallar llegan los ácaros: tu celda más alta baja a cera y _queda marcada_. Cada **${cada}** turnos, la marca salta a una celda de cría vecina y la baja a cera.`,
                 quita: `**Cosecha las celdas marcadas** para limpiarlas: al final, cada una que quede resta **${milesES(HUELLA_RESTA)}** puntos.` },
     polilla:  { pasa: 'Ha dejado un **capullo**, y su celda _queda marcada_. Si vuelves a fallar, eclosiona y llega la seda.',
-                quita: '**Cualquier cosecha** que toque el capullo o una celda de al lado lo quita.' },
+                quita: `**Cualquier cosecha** que toque el capullo o una celda de al lado lo quita. Si queda al final, **su celda resta ${milesES(HUELLA_RESTA)} puntos**.` },
     seda,
     velutina: { pasa: `La avispa asiática: **${V} celdas** bajan a cera y _quedan marcadas_; la marca crece cada **${cada}** turnos. Después tienes **${CALMA_TRAS_VELUTINA} turnos de calma**.`,
-                quita: `Usa la calma para una **cosecha de ${G}**: baja la escalera, y si cae sobre las marcadas, también las limpia.` },
+                quita: `Usa la calma para una **cosecha de ${G}**: baja la escalera, y si cae sobre las marcadas, también las limpia. Al final, **cada celda marcada que quede resta ${milesES(HUELLA_RESTA)} puntos**.` },
   };
   return {
     etiqueta: `Nueva plaga · ${info.peldano} de ${DESASTRES_VISIBLES.length}`, nombre: info.nombre,
+    // La de consulta, al tocarla en la fila (v11.18): ya no es nueva.
+    etiquetaConsulta: `Plaga · ${info.peldano} de ${DESASTRES_VISIBLES.length}`,
     alerta: false, ...textos[tipo],
     tabla: modo === 'contagio' ? 'Para bajar la escalera, cuanto más grande la cosecha, más bajas:'
                                : 'Cuanto más grande la cosecha, más bajas:',
     reloj: !!CONFIG_MODO[modo].reloj,
   };
 }
+// Tocar una plaga que aún no ha salido en este modo (v11.18): su nombre, sin desvelar qué hace.
+const TARJETA_AUN_NO = 'Aún no te ha salido. Cuando llegue, te la explico.';
 // La primera helada de Invierno: la misma hoja, sin tabla (no hay escalera) y sin
 // reloj. Las celdas, de HELADA_MUERDE de la dificultad en juego.
 function tarjetaHelada(dificultad = 'normal') {
   const n = HELADA_MUERDE[dificultad] || HELADA_MUERDE.normal;
   return {
-    etiqueta: 'Primera helada', nombre: 'Helada', alerta: false, tabla: null, reloj: false,
+    etiqueta: 'Primera helada', etiquetaConsulta: 'Helada', nombre: 'Helada', alerta: false, tabla: null, reloj: false,
     pasa: `Al fallar, la helada rompe **${n === 1 ? '1 celda' : `${n} celdas`}** del borde, **para siempre**. Cada fallo, ${n === 1 ? 'otra' : `otras ${n}`}; sin panal, se acaba.`,
     quita: 'Si sale el **humo** (la gota H), recógelo con la cadena: te devuelve como agua la última celda rota.',
   };
@@ -489,7 +493,7 @@ function tieneDificultad(modo) {
 // jugando en el móvil no hay forma de saber si lo que tienes delante es lo
 // último que se subió.
 // Se mantiene a mano y tiene que coincidir con package.json (ver Recetas).
-const VERSION = 'v11.17';
+const VERSION = 'v11.18';
 
 // Opinar (v11.14, T-56, §5.107; dentro del juego desde la v11.16, §5.109): una hoja
 // del juego con las preguntas del formulario de Google; al enviar, el juego manda
