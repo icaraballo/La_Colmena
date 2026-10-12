@@ -10,7 +10,7 @@ con escalera y panal», «quiero más rojas difíciles»); tú los fabricas con 
 le cuentas qué hay y **te paras**. Él los juega y elige. Con su selección, los metes en el juego
 y preparas el commit. **Nunca publicas.**
 
-Todo se lanza desde la raíz del repo (`La_Colmena/`). Habla con Iñigo en castellano, también en
+Todo se lanza desde la raíz del repo (`La-Colmena/`). Habla con Iñigo en castellano, también en
 los avisos de progreso.
 
 ## Las reglas que no se saltan
