@@ -493,7 +493,7 @@ function tieneDificultad(modo) {
 // jugando en el móvil no hay forma de saber si lo que tienes delante es lo
 // último que se subió.
 // Se mantiene a mano y tiene que coincidir con package.json (ver Recetas).
-const VERSION = 'v11.18';
+const VERSION = 'v11.19';
 
 // Opinar (v11.14, T-56, §5.107; dentro del juego desde la v11.16, §5.109): una hoja
 // del juego con las preguntas del formulario de Google; al enviar, el juego manda

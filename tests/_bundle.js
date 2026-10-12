@@ -40,7 +40,7 @@ const FOOTER = `
      serializarPartida, restaurarPartida, GUARDADO_VERSION,
      TABLEROS, vecinas, existe,
      CONTAGIO_CADA, TURNOS_CONTAGIO, HUELLA_RESTA, NIVELES_CONTAGIABLES, celdasMarcadas,
-     penalizacionHuellas, contagioInminente, turnosRestantes, contagiar, marcada,
+     penalizacionHuellas, contagioInminente, turnosParaContagio, turnosRestantes, contagiar, marcada,
      CERRADAS_EXPANSION, ARRANQUE_EXPANSION, TOPE_EXPANSION, ABRE_COSECHA_PEQUENA,
      celdasQueGana, celdasQueAbriria, abiertas, peldanosQueBaja,
      ABRE_EXPANSION, abreDesde, tieneDificultad,

@@ -910,6 +910,27 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
     eq(s.height[12], T.CERA, 'la celda contagiada baja a cera (v10.1)');
     ok(s.eventos.some(e => e.type === 'contagia' && e.desde === T.LARVA), 'y el evento dice de qué nivel bajó');
   }
+  // v11.19 (T-57): los turnos que le faltan a cada grupo, para la pantalla. Vale 1
+  // justo en los de contagioInminente, en normal y en difícil, y tras crecer (o
+  // intentarlo sin vecinas) vuelve a CONTAGIO_CADA.
+  for (const dif of ['normal', 'dificil']) {
+    const cada = T.CONTAGIO_CADA[dif];
+    const s = tablero('contagio', T.CERA, { 12: T.LARVA }, dif);
+    const a = { tipo: 'varroa', tiles: [11], proximo: cada }, b = { tipo: 'velutina', tiles: [3], proximo: cada + 2 };
+    s.huellas = [a, b];
+    for (s.turn = 0; s.turn < cada; s.turn++) {
+      const inm = T.contagioInminente(s);
+      for (const g of s.huellas) eq(inm.includes(g), T.turnosParaContagio(s, g) === 1, `${dif}, turno ${s.turn}: 1 justo cuando parpadea`);
+    }
+    eq(T.turnosParaContagio(s, a), 0, `${dif}: en su turno le faltan 0`);
+    eq(T.turnosParaContagio(s, b), 2, `${dif}: cada grupo lleva su reloj`);
+    s.eventos = []; T.contagiar(s);
+    ok(a.tiles.includes(12), `${dif}: crece`);
+    eq(T.turnosParaContagio(s, a), cada, `${dif}: tras crecer vuelve a CONTAGIO_CADA (${cada})`);
+    s.turn = b.proximo; T.contagiar(s);
+    eq(b.tiles.length, 1, `${dif}: sin cría vecina no crece…`);
+    eq(T.turnosParaContagio(s, b), cada, `${dif}: …y el reloj vuelve a empezar`);
+  }
   // v10.1: al bajar a cera, el contagio puede romper la meseta en ese mismo turno.
   {
     const s = tablero('contagio', T.CERA, { 0: T.LARVA, 1: T.LARVA, 2: T.LARVA, 3: T.LARVA, 23: T.AGUA });

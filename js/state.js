@@ -617,7 +617,12 @@ function celdasMarcadas(s) {
 function penalizacionHuellas(s) { return celdasMarcadas(s) * HUELLA_RESTA; }
 // Los grupos que crecen al pasar el turno siguiente: parpadean para avisarlo,
 // tengan o no vecinas válidas ahora (tu jugada puede darles una).
-function contagioInminente(s) { return s.huellas.filter(g => g.proximo - s.turn === 1); }
+function contagioInminente(s) { return s.huellas.filter(g => turnosParaContagio(s, g) === 1); }
+// Los turnos que le faltan al grupo `g` para crecer (v11.19, T-57): la pantalla lo
+// escribe en cada celda del grupo. Vale 1 justo en los de contagioInminente: «al
+// terminar tu próxima jugada se extiende». Tras crecer, o intentarlo sin vecinas,
+// vuelve a CONTAGIO_CADA.
+function turnosParaContagio(s, g) { return g.proximo - s.turn; }
 function turnosRestantes(s) { return Math.max(0, TURNOS_CONTAGIO - s.turn); }
 
 // Se acaban los turnos: cada celda marcada resta, y los puntos no bajan de 0.

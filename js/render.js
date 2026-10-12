@@ -115,6 +115,8 @@ function draw(ctx, s, ui, now) {
   const R = layout.R;
   const inChain = new Set(ui.cells);
   const capullos = new Set(s.desastres.filter(d => d.tipo === 'capullo').map(d => d.tile));
+  // Celdas con el reloj del contagio debajo del nivel (v11.19): las de varroa y velutina.
+  const relojes = new Set(s.huellas ? s.huellas.flatMap(g => g.tiles) : []);
   // El fallo explicado (v11.2): las celdas fuera del grupo de máx se pintan apagadas
   // en su turno del bucle (un velo encima, después, pisaría a las vecinas en el 2.5D).
   const grupoMax = ui.explica ? new Set(ui.explica.grupo) : null;
@@ -175,11 +177,14 @@ function draw(ctx, s, ui, now) {
     ctx.stroke();
 
     if (!ui.sinNumeros) {
+      // Con reloj de contagio debajo (v11.19, T-57), el nivel sube y encoge para
+      // dejarle sitio dentro del anillo (opción B: 0,44·R, unos 13 px a 360).
+      const conReloj = relojes.has(i);
       ctx.fillStyle = apagada ? 'rgba(255,245,225,0.3)' : h >= LARVA ? 'rgba(30,20,5,0.7)' : 'rgba(255,245,225,0.8)';
-      ctx.font = `600 ${Math.round(R * 0.55)}px system-ui, sans-serif`;
+      ctx.font = `600 ${Math.round(R * (conReloj ? 0.44 : 0.55))}px system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(h), x, y);
+      ctx.fillText(String(h), x, conReloj ? y - R * 0.17 : y);
     }
 
     // Seda: la celda está bloqueada unos turnos.
@@ -213,6 +218,10 @@ function draw(ctx, s, ui, now) {
   // relleno, porque el brillo es el nivel (Tema y estética §3), y va más hacia
   // el centro que la cadena, que es blanca y pega al borde: se ven las dos a la
   // vez. El grupo que crece al pasar el turno parpadea (avisa, nunca por sorpresa).
+  // Desde la v11.19 (T-57), bajo el nivel, los turnos que le faltan a su grupo
+  // (turnosParaContagio, del motor): todo el grupo dice lo mismo, así se ve qué
+  // celdas van juntas, y el número parpadea con el anillo. Rojo claro con halo
+  // oscuro, 0,40·R, dentro del anillo sin tocarlo.
   if (s.huellas && s.huellas.length) {
     const inminentes = new Set(contagioInminente(s));
     ctx.save();
@@ -228,6 +237,19 @@ function draw(ctx, s, ui, now) {
         ctx.strokeStyle = '#e5484d';
         ctx.lineWidth = R * 0.1;
         ctx.stroke();
+      }
+      const faltan = String(turnosParaContagio(s, g));
+      ctx.font = `800 ${Math.round(R * 0.4)}px system-ui, sans-serif`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.lineWidth = R * 0.1;
+      ctx.strokeStyle = '#1c1710';
+      ctx.fillStyle = '#ff8a8d';
+      for (const i of g.tiles) {
+        if (!existe(s, i)) continue;
+        const ty = topY(s, i) + R * 0.25;
+        ctx.strokeText(faltan, layout.cx[i], ty);
+        ctx.fillText(faltan, layout.cx[i], ty);
       }
     }
     ctx.restore();
