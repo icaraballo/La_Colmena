@@ -1,6 +1,6 @@
 # La Colmena
 
-**Jugar**: https://icaraballo.github.io/La-Colmena/ · gratis, en el navegador del móvil o del ordenador.
+**Jugar**: https://icaraballo.github.io/La_Colmena/ · gratis, en el navegador del móvil o del ordenador.
 
 Puzzle de panal hexagonal. La mecánica está inspirada en un juego de móvil de 2012 que ya no
 funciona; todo lo demás (tema, nombre, arte, textos y código) es propio y está hecho desde cero.

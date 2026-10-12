@@ -1401,8 +1401,8 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   eq(T.codigoDeBusqueda(''), null, 'sin búsqueda, nada');
   eq(T.codigoDeBusqueda('?c=%E0'), null, 'mal codificado, nada');
   eq(T.codigoDeBusqueda(undefined), null, 'sin nada, nada');
-  const enl = T.enlacePartida('https://icaraballo.github.io/La-Colmena/', 'CR-N-4069568398');
-  eq(enl, 'https://icaraballo.github.io/La-Colmena/?c=CR-N-4069568398', 'el enlace');
+  const enl = T.enlacePartida('https://icaraballo.github.io/La_Colmena/', 'CR-N-4069568398');
+  eq(enl, 'https://icaraballo.github.io/La_Colmena/?c=CR-N-4069568398', 'el enlace');
   for (const [modo, dif] of [['contrarreloj', 'normal'], ['invierno', 'dificil'], ['contagio', 'normal'], ['expansion', 'dificil']]) {
     const cod = T.codigoPartida(modo, dif, 4069568398);
     const vuelta = T.leerCodigo(T.codigoDeBusqueda(T.enlacePartida('https://x/', cod).slice('https://x/'.length)));
