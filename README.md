@@ -78,6 +78,18 @@ tests/bot.js      simulador de partidas                    · npm run bot [n] [s
 puzles/           la máquina de puzles                     · npm run puzles -- generar · npm run test:puzles
 ```
 
+## Privacidad
+
+La Colmena **no tiene servidor, ni cuentas, ni analítica, ni cookies**.
+
+- Tus récords, tu historial y la partida a medias se guardan **sólo en tu navegador**
+  (`localStorage`). Si borras los datos del sitio, se borran.
+- Si mandas una opinión desde el juego, va a un **formulario de Google** con la versión del juego
+  y el código de la partida. Tu nombre y tu contacto, sólo si los escribes.
+- GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.
+
+Lo mismo se lee dentro del juego: «Privacidad», al pie de los modos y en la hoja de opinar.
+
 ## Licencia
 
 Todos los derechos reservados: ver [LICENSE](LICENSE).

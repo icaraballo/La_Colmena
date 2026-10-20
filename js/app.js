@@ -560,6 +560,33 @@ function cerrarOpinion() {
   if (opinionOrigen && document.contains(opinionOrigen) && opinionOrigen.offsetParent) opinionOrigen.focus({ preventScroll: true });
   opinionOrigen = null;
 }
+
+// Privacidad (v11.20, auditoría SEG-03, §5.114): una hoja con lo que se guarda y lo
+// que se envía, desde el pie de los modos y desde opinar. Va encima de opinar: al
+// cerrarla, opinar sigue abierta. El texto vive en index.html, igual que en el README.
+let privacidadAbierta = false;
+let privacidadOrigen = null;
+let privacidadCierre = 0;
+function abrirPrivacidad() {
+  cerrarPop();
+  clearTimeout(privacidadCierre);
+  privacidadAbierta = true;
+  privacidadOrigen = document.activeElement;
+  const h = document.getElementById('privacidad'), velo = document.getElementById('privacidad-fondo');
+  h.hidden = false; velo.hidden = false;
+  h.getBoundingClientRect();                 // fuerza el estilo de partida para que haya transición
+  h.classList.add('abierta'); velo.classList.add('abierta');
+  document.getElementById('privacidad-ok').focus({ preventScroll: true });
+}
+function cerrarPrivacidad() {
+  if (!privacidadAbierta) return;
+  privacidadAbierta = false;
+  const h = document.getElementById('privacidad'), velo = document.getElementById('privacidad-fondo');
+  h.classList.remove('abierta'); velo.classList.remove('abierta');
+  privacidadCierre = setTimeout(() => { h.hidden = true; velo.hidden = true; }, 250);
+  if (privacidadOrigen && document.contains(privacidadOrigen) && privacidadOrigen.offsetParent) privacidadOrigen.focus({ preventScroll: true });
+  privacidadOrigen = null;
+}
 async function enviarOpinion(e) {
   e.preventDefault();
   const form = document.getElementById('opinion-form'), boton = document.getElementById('opinion-enviar');
@@ -2761,6 +2788,10 @@ window.addEventListener('DOMContentLoaded', () => {
   document.getElementById('opinion-cerrar').addEventListener('click', cerrarOpinion);
   document.getElementById('opinion-volver').addEventListener('click', cerrarOpinion);
   document.getElementById('opinion-fondo').addEventListener('click', cerrarOpinion);
+  ['privacidad-inicio', 'privacidad-opinion'].forEach(id =>
+    document.getElementById(id).addEventListener('click', abrirPrivacidad));
+  ['privacidad-cerrar', 'privacidad-ok', 'privacidad-fondo'].forEach(id =>
+    document.getElementById(id).addEventListener('click', cerrarPrivacidad));
   pintarTarjeta();
   pintarEscalaExpansion('normal');
   pintarEscaleras();
@@ -2928,7 +2959,8 @@ window.addEventListener('DOMContentLoaded', () => {
   // Escape cierra lo que esté encima; en la ficha, las flechas cambian de modo.
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
-      if (opinionDatos) cerrarOpinion();
+      if (privacidadAbierta) cerrarPrivacidad();
+      else if (opinionDatos) cerrarOpinion();
       else if (tarjetaAbierta) cerrarTarjeta();
       else if (hojaAbierta) cerrarHoja();
       else if (fichaNivel) cerrarFichaNivel();

@@ -115,7 +115,7 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
 .modo-fila.pequena .txt{flex-direction:row;align-items:baseline;justify-content:space-between;gap:8px}
 .modo-fila.pequena .nom{font-size:14px}
 .modo-fila.pequena .frase{font-size:12px}
-#inicio-version{align-self:center;font-size:11px;color:#8c7f6a;font-variant-numeric:tabular-nums}
+#inicio-version{font-variant-numeric:tabular-nums}
 
 /* La barra de la partida (v9): sustituye a la fila de modos. Menú, el modo y
    la dificultad, y la semilla. */
@@ -698,6 +698,25 @@ footer .sem{font-variant-numeric:tabular-nums}
 .op-gracias[hidden]{display:none}
 .op-ok{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;text-align:center}
 .op-ok h3{font-size:22px;color:#ede4d3}.op-ok p{font-size:14px;line-height:1.4;color:#c9b99c;max-width:260px}
+/* Privacidad (v11.20, auditoría SEG-03, §5.114): una hoja como la de opinar, pero de
+   lo que mide su texto. Se abre desde el pie de los modos y desde la línea de
+   privacidad de opinar; encima de opinar, así que al cerrarla se vuelve a ella. */
+#privacidad-fondo{position:fixed;inset:0;background:rgba(18,16,12,.55);z-index:36;opacity:0;transition:opacity .25s ease-out}
+#privacidad-fondo.abierta{opacity:1}
+#privacidad{position:fixed;left:0;right:0;bottom:0;max-height:calc(100dvh - 24px);z-index:37;max-width:480px;margin:0 auto;
+  background:#1c1710;border-top:3px solid #9fd67a;border-radius:20px 20px 0 0;
+  padding:10px 18px calc(16px + env(safe-area-inset-bottom));display:flex;flex-direction:column;gap:12px;
+  box-shadow:0 -12px 30px rgba(0,0,0,.55);transform:translateY(100%);transition:transform .25s ease-out}
+#privacidad.abierta{transform:none}
+.priv-texto{display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
+.priv-texto p{font-size:14.5px;line-height:1.45;color:#c9b99c}
+.priv-texto b{color:#ede4d3}
+#privacidad-ok{background:#9fd67a;color:#16210d}
+#privacidad-ok:hover{background:#b3e392}
+/* El enlace «Privacidad»: al pie de los modos, junto a la versión, y en opinar. */
+.modos-pie{align-self:center;display:flex;align-items:baseline;gap:6px;font-size:11px;color:#8c7f6a}
+.enlace-priv{all:unset;cursor:pointer;color:#c9b99c;text-decoration:underline;text-underline-offset:2px}
+.enlace-priv:focus-visible{outline:2px solid #9fd67a;border-radius:3px}
 /* Las tarjetas de primera vez (v11.15, T-46d, §5.108): la hoja A, desde abajo, como
    la ficha de un nivel de Puzzle; con el naranja de las plagas arriba. */
 #tarjeta-fondo{position:fixed;inset:0;background:rgba(18,16,12,.55);z-index:32;opacity:0;transition:opacity .25s ease-out}
@@ -821,14 +840,14 @@ footer .sem{font-variant-numeric:tabular-nums}
    medía 20×14, las flechas de la ficha 20×20, y el título de las plagas y la
    semilla, 17 y 15 de alto. Un ::after transparente recibe el toque alrededor.
    Al final del CSS: los `all:unset` de esos botones borrarían el position. */
-.info-btn,.hoja-modos button,.plagas-titulo,footer .sem,#helada{position:relative}
+.info-btn,.hoja-modos button,.plagas-titulo,footer .sem,#helada,.enlace-priv{position:relative}
 #helada{cursor:pointer}
 .info-btn::after,.hoja-modos button::after{content:'';position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%)}
 .info-btn::after{margin-left:3px}
 /* En la barra de datos la (i) queda justo bajo «Menú»: su zona crece hacia abajo
    (hacia el número, que no se toca) y no le quita el borde de abajo. */
 .lbl .info-btn::after{height:36px;transform:translate(-50%,-36%)}
-.plagas-titulo::after,footer .sem::after,#helada::after{content:'';position:absolute;inset:-14px -6px}
+.plagas-titulo::after,footer .sem::after,#helada::after,.enlace-priv::after{content:'';position:absolute;inset:-14px -6px}
 </style>
 </head>
 <body>
@@ -930,7 +949,8 @@ footer .sem{font-variant-numeric:tabular-nums}
       <svg width="8" height="13" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
     </button>
 
-    <span id="inicio-version"></span>
+    <!-- La versión y la privacidad (v11.20, §5.114), al final de todo. -->
+    <p class="modos-pie"><span id="inicio-version"></span>·<button class="enlace-priv" id="privacidad-inicio">Privacidad</button></p>
   </div>
 </section>
 
@@ -1386,13 +1406,29 @@ footer .sem{font-variant-numeric:tabular-nums}
     <div class="op-preguntas" id="opinion-preguntas"></div>
     <p class="op-aviso" id="opinion-aviso" role="status"></p>
     <button type="submit" class="op-enviar" id="opinion-enviar">Enviar</button>
-    <p class="op-privacidad">Se envía a un formulario de Google con la versión y la partida. Nombre y contacto, sólo si los pones.</p>
+    <p class="op-privacidad">Se envía a un formulario de Google con la versión y la partida. Nombre y contacto, sólo si los pones. <button type="button" class="enlace-priv" id="privacidad-opinion">Privacidad</button></p>
   </form>
   <div class="op-gracias" id="opinion-gracias" hidden>
     <div class="op-ok"><svg width="64" height="56" viewBox="0 0 46 40" aria-hidden="true"><polygon points="23,1 45,11 45,29 23,39 1,29 1,11" fill="#9fd67a"/><path d="M15 21l6 6 11-13" stroke="#1c1710" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
       <h3>¡Gracias!</h3><p>Lo leo todo. Tu opinión ayuda a que el juego mejore.</p></div>
     <button type="button" class="op-enviar" id="opinion-volver">Volver al juego</button>
   </div>
+</div>
+
+<!-- Privacidad (v11.20, auditoría SEG-03, §5.114): lo mismo que el apartado del
+     README. Si cambia qué se guarda o qué se envía, cambiar los dos. -->
+<div id="privacidad-fondo" hidden></div>
+<div id="privacidad" role="dialog" aria-modal="true" aria-labelledby="privacidad-titulo" hidden>
+  <div class="hoja-asa"><span></span></div>
+  <div class="op-cab"><h2 id="privacidad-titulo">Privacidad</h2>
+    <button type="button" class="op-x" id="privacidad-cerrar" aria-label="Cerrar">✕</button></div>
+  <div class="priv-texto">
+    <p>La Colmena <b>no tiene servidor, ni cuentas, ni analítica, ni cookies</b>.</p>
+    <p>Tus récords, tu historial y la partida a medias se guardan <b>sólo en este navegador</b>. Si borras los datos del sitio, se borran.</p>
+    <p>Si mandas una opinión, va a un <b>formulario de Google</b> con la versión del juego y el código de la partida. Tu nombre y tu contacto, sólo si los escribes.</p>
+    <p>GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.</p>
+  </div>
+  <button type="button" class="op-enviar" id="privacidad-ok">Entendido</button>
 </div>
 
 <!-- Las tarjetas de primera vez (v11.15, T-46d, §5.108; forma A): una hoja desde
@@ -1416,24 +1452,24 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.19"></script>
-<script src="js/state.js?v=11.19"></script>
-<script src="js/bot-tonto.js?v=11.19"></script>
-<script src="js/guardado.js?v=11.19"></script>
+<script src="js/constants.js?v=11.20"></script>
+<script src="js/state.js?v=11.20"></script>
+<script src="js/bot-tonto.js?v=11.20"></script>
+<script src="js/guardado.js?v=11.20"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.19"></script>
-<script src="js/render.js?v=11.19"></script>
-<script src="js/input.js?v=11.19"></script>
+<script src="js/historial.js?v=11.20"></script>
+<script src="js/render.js?v=11.20"></script>
+<script src="js/input.js?v=11.20"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.19"></script>
+<script src="js/puzles.js?v=11.20"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.19"></script>
+<script src="js/tutorial.js?v=11.20"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.19"></script>
-<script src="puzles/buscador.js?v=11.19"></script>
-<script src="puzles/juego.js?v=11.19"></script>
-<script src="js/pista.js?v=11.19"></script>
-<script src="js/app.js?v=11.19"></script>
+<script src="puzles/objetivos.js?v=11.20"></script>
+<script src="puzles/buscador.js?v=11.20"></script>
+<script src="puzles/juego.js?v=11.20"></script>
+<script src="js/pista.js?v=11.20"></script>
+<script src="js/app.js?v=11.20"></script>
 </body>
 </html>

@@ -1820,5 +1820,20 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   ok(/op-privacidad">Se envía a un formulario de Google/.test(html), 'opinar dice qué se envía y adónde');
 }
 
+// --- la privacidad (v11.20, auditoría SEG-03) -------------------------------------------------------
+{
+  const fs = require('fs'), path = require('path');
+  const raiz = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  const html = raiz('index.html'), readme = raiz('README.md');
+  ok(/id="privacidad-inicio"/.test(html) && /id="privacidad-opinion"/.test(html), 'Privacidad se abre desde los modos y desde opinar');
+  ok(/^## Privacidad/m.test(readme), 'el README tiene su apartado de privacidad');
+  // El juego y el README dicen lo mismo: las frases clave, en los dos.
+  const plano = t => t.replace(/<[^>]+>|\*\*|`/g, '').replace(/\s+/g, ' ');
+  const hoja = plano((/<div class="priv-texto">([\s\S]*?)<\/div>/.exec(html) || [])[1] || '');
+  for (const f of ['no tiene servidor, ni cuentas, ni analítica, ni cookies', 'Si borras los datos del sitio, se borran',
+                   'formulario de Google', 'Tu nombre y tu contacto, sólo si los escribes', 'ven tu dirección IP'])
+    ok(hoja.includes(f) && plano(readme).includes(f), `privacidad: «${f}», en el juego y en el README`);
+}
+
 console.log(`${total - fallos}/${total} comprobaciones correctas`);
 if (fallos) process.exit(1);
