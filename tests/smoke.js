@@ -1835,5 +1835,55 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
     ok(hoja.includes(f) && plano(readme).includes(f), `privacidad: «${f}», en el juego y en el README`);
 }
 
+// --- la v11.21: el móvil tumbado (CR-17) y lo que quedaba de la auditoría ----------------------------
+{
+  // El dedo, girado a la página. Ventana de 640 × 360 (móvil tumbado): la página mide
+  // 360 × 640. Las cuatro esquinas de la ventana caen en esquinas de la página, y
+  // el centro en el centro.
+  const W = 640, H = 360, igual2 = (a, b) => a[0] === b[0] && a[1] === b[1];
+  ok(igual2(T.giroAPagina(10, 20, undefined, W, H), [10, 20]), 'sin giro, el dedo no cambia');
+  ok(igual2(T.giroAPagina(W / 2, H / 2, '90', W, H), [H / 2, W / 2]), 'giro 90: el centro, en el centro');
+  ok(igual2(T.giroAPagina(0, H, '90', W, H), [0, 0]), 'giro 90: abajo a la izquierda es arriba a la izquierda de la página');
+  ok(igual2(T.giroAPagina(W, 0, '90', W, H), [H, W]), 'giro 90: arriba a la derecha es abajo a la derecha de la página');
+  ok(igual2(T.giroAPagina(W / 2, H / 2, '270', W, H), [H / 2, W / 2]), 'giro 270: el centro, en el centro');
+  ok(igual2(T.giroAPagina(W, 0, '270', W, H), [0, 0]), 'giro 270: arriba a la derecha es arriba a la izquierda de la página');
+  ok(igual2(T.giroAPagina(0, H, '270', W, H), [H, W]), 'giro 270: abajo a la izquierda es abajo a la derecha de la página');
+
+  // SEG-04: un id o una versión que no tengan la forma del juego, fuera.
+  let n = 0;
+  const e = extra => ({ id: 'k' + (n++), modo: 'contrarreloj', dificultad: 'normal', semilla: n, version: 'v11.21',
+    fecha: new Date(Date.UTC(2026, 9, 25) + n * 60000).toISOString(), puntos: 10, turnos: 5, duracion: 9,
+    rachaMax: 1, jugadaMax: 3, estrella: false, ...extra });
+  const g = { v: T.HISTORIAL_VERSION, partidas: [e({}), e({ id: '"><img src=x>' }), e({ version: '<b>' }), e({ id: 'MAYUS' }),
+    e({ version: 'v11' }), e({ id: 'a'.repeat(25) }), e({ id: 'mgx0k2a1b2c' })] };
+  const leido = T.leerHistorial(g).partidas.map(x => x.id).sort().join(',');
+  eq(leido, ['k0', 'k4', 'mgx0k2a1b2c'].sort().join(','), 'el historial descarta ids y versiones raros y se queda con los buenos');
+
+  // SEG-09: un `?c=` mal codificado sigue sin dar código (el aviso lo da app.js).
+  eq(T.codigoDeBusqueda('?c=%E0%A4%A'), null, '?c= mal codificado: nada');
+  for (const malo of ['<img src=x onerror=alert(1)>', 'CR-N-NaN', 'CR-N-١٢٣', 'CR-N-' + '7'.repeat(10000), 'CR-N--5'])
+    eq(T.leerCodigo(malo), null, `«${malo.slice(0, 30)}» no es un código`);
+
+  const fs = require('fs'), path = require('path');
+  const raiz = f => fs.readFileSync(path.join(__dirname, '..', f), 'utf8');
+  const html = raiz('index.html'), app = raiz('js/app.js');
+  ok(/:root\[data-giro="90"\] body\{transform:translate\(-50%,-50%\) rotate\(-90deg\)\}/.test(html) &&
+     /:root\[data-giro="270"\] body\{transform:translate\(-50%,-50%\) rotate\(90deg\)\}/.test(html), 'el CSS contrarrota el body');
+  // Con la página girada, dvh, vw y las zonas seguras van por variables que cambian de eje.
+  const css = (/<style>([\s\S]*?)<\/style>/.exec(html) || [])[1] || '';
+  const sueltos = css.replace(/:root[^{]*\{[^}]*\}/g, '').replace(/:root\[data-giro\] body\{[^}]*\}/g, '').replace(/body\{[^}]*\}/, '');
+  ok(!/\d+dv?[hw]\b|\d+vw\b|\d+vh\b|env\(safe-area/.test(sueltos), 'fuera del giro no quedan dvh, vw ni zonas seguras a pelo');
+  // touch-action va por la pantalla: cada zona que se desplaza tiene su eje cambiado al girar.
+  const sinNotas = css.replace(/\/\*[\s\S]*?\*\//g, '');
+  const zonas = [...sinNotas.matchAll(/(^|\})\s*([^{}]+)\{[^}]*touch-action:pan-[xy]/g)].map(m => m[2].trim()).filter(s => !s.startsWith(':root'));
+  const giradas = [...sinNotas.matchAll(/(:root\[data-giro\][^{]+)\{touch-action:pan-[xy]\}/g)].map(m => m[1]).join(',');
+  ok(zonas.length >= 8 && zonas.every(z => z.split(',').every(s => giradas.includes(`:root[data-giro] ${s.trim()}`))),
+     'cada zona con touch-action pan-x o pan-y cambia de eje con el móvil tumbado');
+  ok(!/clientX|clientY/.test(app.replace(/aPagina\(e\.clientX, e\.clientY\)/g, '')), 'app.js no lee el dedo sin girarlo');
+  ok(!/getBoundingClientRect\(\)\.(top|bottom|left|width)/.test(app), 'app.js no mide con la caja sin girar');
+  const gi = raiz('.gitignore');
+  ok(['Thumbs.db', 'desktop.ini', '.env*', '*.log', 'coverage/', '.vscode/', '.idea/'].every(l => gi.split(/\r?\n/).includes(l)), '.gitignore con lo de Windows y los editores');
+}
+
 console.log(`${total - fallos}/${total} comprobaciones correctas`);
 if (fallos) process.exit(1);

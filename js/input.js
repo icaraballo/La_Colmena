@@ -77,16 +77,54 @@ function pasoDeCadena(s, cadena, i, porque) {
   return { cells: [...cells, i], desde: [...desde, aqui], trail: [...trail, i], deshaciendo: false };
 }
 
+// Móvil tumbado (v11.21, CR-17): la página se contrarrota y sigue en vertical
+// respecto al móvil (app.js, vigilarGiro; el CSS de :root[data-giro]). El dedo
+// llega en coordenadas de la ventana, que ya no son las de la página: hay que
+// girarlas. `giro` es '90' (la página va a −90°), '270' (a +90°) o nada; `ancho`
+// y `alto`, los de la ventana. Pura, para probarla en Node.
+//   '90':  rotate(-90deg) lleva (x, y) de la página a (y, −x) → al revés, x = alto − y'
+//   '270': rotate(90deg)  lleva (x, y) a (−y, x)              → al revés, y = ancho − x'
+function giroAPagina(x, y, giro, ancho, alto) {
+  if (giro === '90') return [alto - y, x];
+  if (giro === '270') return [y, ancho - x];
+  return [x, y];
+}
+function giroActual() {
+  return typeof document !== 'undefined' ? document.documentElement.dataset.giro : undefined;
+}
+// Un punto de la ventana (clientX, clientY), en coordenadas de la página.
+function aPagina(x, y) {
+  return giroAPagina(x, y, giroActual(), window.innerWidth, window.innerHeight);
+}
+// Lo mismo para un evento del dedo (los gestos de deslizar de app.js).
+const dedoX = e => aPagina(e.clientX, e.clientY)[0];
+const dedoY = e => aPagina(e.clientX, e.clientY)[1];
+// getBoundingClientRect, en coordenadas de la página. Con la página girada, la
+// caja que da el navegador es la del elemento ya girado: se giran dos esquinas
+// opuestas y se vuelve a ordenar.
+function rectEnPagina(el) {
+  const r = el.getBoundingClientRect();
+  if (!giroActual()) return r;
+  const [x1, y1] = aPagina(r.left, r.top), [x2, y2] = aPagina(r.right, r.bottom);
+  const left = Math.min(x1, x2), top = Math.min(y1, y2), right = Math.max(x1, x2), bottom = Math.max(y1, y2);
+  return { left, top, right, bottom, width: right - left, height: bottom - top };
+}
+// El ancho de la página: con el móvil tumbado es el alto de la ventana.
+function anchoPagina() {
+  return giroActual() ? window.innerHeight : window.innerWidth;
+}
+
 // getState es una función, no el estado: al reiniciar la partida se crea un
 // objeto nuevo y un closure sobre el viejo seguiría hablando con la anterior.
 // `alSoltar` (v11.2), opcional: se llama al levantar el dedo con lo que había,
 // { cells, cancelada, valida }, se juegue o no. El tutorial lo usa para contar
 // lo que no ha contado (soltar fuera, soltar antes de llegar al paso).
 function initInput(canvas, getState, onCommit, redraw, alSoltar) {
+  // Con el móvil tumbado, el dedo y el lienzo se giran a la página (CR-17).
   const pos = (e) => {
-    const r = canvas.getBoundingClientRect();
-    return [(e.clientX - r.left) * (canvas.width / r.width),
-            (e.clientY - r.top) * (canvas.height / r.height)];
+    const r = rectEnPagina(canvas), [x, y] = aPagina(e.clientX, e.clientY);
+    return [(x - r.left) * (canvas.width / r.width),
+            (y - r.top) * (canvas.height / r.height)];
   };
 
   // ¿Ha sacado el dedo del panal? Tiene que estar FUERA DEL CANVAS y además a

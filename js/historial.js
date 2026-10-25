@@ -197,10 +197,12 @@ function leerHistorial(g) {
   const ids = new Set();
   for (const x of g.partidas) {
     if (!x || typeof x !== 'object') continue;
-    if (typeof x.id !== 'string' || !x.id || ids.has(x.id)) continue;
+    // El id y la versión se pintan en Tus partidas: sólo con la forma que les da el
+    // juego, para que nada de localStorage entre como HTML (v11.21, auditoría SEG-04).
+    if (typeof x.id !== 'string' || !/^[0-9a-z]{1,24}$/.test(x.id) || ids.has(x.id)) continue;
     if (!MODOS_HISTORIAL.includes(x.modo) || !NOMBRE_DIF[x.dificultad]) continue;
     if (!Number.isInteger(x.semilla) || x.semilla < 0 || x.semilla > 0xffffffff) continue;
-    if (typeof x.version !== 'string' || typeof x.fecha !== 'string' || isNaN(Date.parse(x.fecha))) continue;
+    if (typeof x.version !== 'string' || !/^v\d+(\.\d+)*$/.test(x.version) || typeof x.fecha !== 'string' || isNaN(Date.parse(x.fecha))) continue;
     if (!num(x.puntos) || !Number.isInteger(x.turnos) || x.turnos < 0 || !num(x.duracion)) continue;
     if (!num(x.rachaMax) || !num(x.jugadaMax)) continue;
     const e = { id: x.id, modo: x.modo, dificultad: x.dificultad, semilla: x.semilla, version: x.version,

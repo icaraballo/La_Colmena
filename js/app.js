@@ -124,9 +124,9 @@ function abrirPop(ancla, contenido) {
 }
 function recolocarPop() {
   const p = document.getElementById('pop');
-  const r = popAncla.getBoundingClientRect();
-  const w = p.getBoundingClientRect().width;
-  p.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+  const r = rectEnPagina(popAncla);             // con el móvil tumbado, girada (CR-17)
+  const w = p.offsetWidth;
+  p.style.left = Math.max(8, Math.min(r.left, anchoPagina() - w - 8)) + 'px';
   p.style.top = (r.bottom + 5) + 'px';
 }
 
@@ -535,7 +535,8 @@ function abrirOpinion(datos) {
 function ajustarOpinion() {
   const h = document.getElementById('opinion'), vv = typeof visualViewport !== 'undefined' ? visualViewport : null;
   const suelta = () => { h.style.top = ''; h.style.bottom = ''; h.classList.remove('con-teclado'); };
-  if (!opinionDatos || !vv || vv.scale > 1.01) { suelta(); return; }
+  // Con el móvil tumbado (CR-17) la ventana no es la página: se deja como está.
+  if (!opinionDatos || !vv || vv.scale > 1.01 || giroActual()) { suelta(); return; }
   const tapado = Math.round(innerHeight - vv.offsetTop - vv.height);
   if (tapado < 1) { suelta(); return; }
   // Con el teclado no se ve la línea de privacidad: el sitio, para las preguntas.
@@ -1180,7 +1181,7 @@ function frame(now) {
 function resize() {
   // Con la partida oculta el hueco mide 0; se vuelve a medir al entrar.
   if (pantalla !== 'partida') return;
-  const r = canvas.parentElement.getBoundingClientRect();
+  const r = rectEnPagina(canvas.parentElement);
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(r.width * dpr);
   canvas.height = Math.round(r.height * dpr);
@@ -1543,21 +1544,21 @@ function gestosFichaNivel(f) {
   let g = null;
   f.addEventListener('pointerdown', e => {
     if (!fichaNivel || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    g = { y: e.clientY, x: e.clientX, t: performance.now(), activo: false, id: e.pointerId };
+    g = { y: dedoY(e), x: dedoX(e), t: performance.now(), activo: false, id: e.pointerId };
   });
   f.addEventListener('pointermove', e => {
     if (!g || e.pointerId !== g.id) return;
-    const dy = e.clientY - g.y;
+    const dy = dedoY(e) - g.y;
     if (!g.activo) {
-      if (Math.hypot(e.clientX - g.x, dy) < 10) return;
-      if (dy <= 0 || Math.abs(e.clientX - g.x) > dy) { g = null; return; }
+      if (Math.hypot(dedoX(e) - g.x, dy) < 10) return;
+      if (dy <= 0 || Math.abs(dedoX(e) - g.x) > dy) { g = null; return; }
       g.activo = true; f.classList.add('arrastrando'); f.setPointerCapture(g.id);
     }
     f.style.transform = `translateY(${Math.max(0, dy)}px)`;
   });
   const soltar = e => {
     if (!g || e.pointerId !== g.id) return;
-    const dy = e.clientY - g.y, v = dy / Math.max(1, performance.now() - g.t);
+    const dy = dedoY(e) - g.y, v = dy / Math.max(1, performance.now() - g.t);
     if (g.activo) {
       f.classList.remove('arrastrando');
       if (e.type !== 'pointercancel' && (dy > 80 || v > 0.6)) cerrarFichaNivel();
@@ -2048,7 +2049,7 @@ const sinAnimar = () => window.matchMedia && matchMedia('(prefers-reduced-motion
 // Math.min sólo cubre un tramo más corto de la cuenta.
 function alturaModos() {
   const el = document.getElementById('inicio');
-  const top = el.scrollTop + document.getElementById('modos').getBoundingClientRect().top - el.getBoundingClientRect().top;
+  const top = el.scrollTop + rectEnPagina(document.getElementById('modos')).top - rectEnPagina(el).top;
   return Math.min(Math.round(top), el.scrollHeight - el.clientHeight);
 }
 function verModos() {
@@ -2120,7 +2121,7 @@ function moverFondo(now) {
 }
 function medirFondo() {
   const c = fondo.canvas;
-  const r = c.parentElement.getBoundingClientRect();
+  const r = rectEnPagina(c.parentElement);
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   c.width = Math.round(r.width * dpr);
   c.height = Math.round(r.height * dpr);
@@ -2211,7 +2212,7 @@ function abrirHoja({ desde, modo, pestana }) {
   hoja.classList.toggle('primera', desde === 'ficha' && pestana === 'basico' && !basicoVisto());
   // Desde los capítulos de Puzzle (v11) también es consulta, pegada a su barra.
   const barra = desde === 'partida' ? 'barra' : desde === 'puzles' ? 'pz-barra' : null;
-  hoja.style.top = barra ? Math.round(document.getElementById(barra).getBoundingClientRect().bottom + 6) + 'px' : '';
+  hoja.style.top = barra ? Math.round(rectEnPagina(document.getElementById(barra)).bottom + 6) + 'px' : '';
   pintarHoja();
   hoja.hidden = false; velo.hidden = false;
   hoja.getBoundingClientRect();              // fuerza el estilo de partida para que haya transición
@@ -2396,13 +2397,13 @@ function gestosHoja(hoja) {
   let g = null, tocado = false;
   hoja.addEventListener('pointerdown', e => {
     if (!hojaAbierta || (e.pointerType === 'mouse' && e.button !== 0)) return;
-    g = { x: e.clientX, y: e.clientY, t: performance.now(), eje: null,
+    g = { x: dedoX(e), y: dedoY(e), t: performance.now(), eje: null,
           enFilas: !!e.target.closest('.hoja-filas'), id: e.pointerId };
     tocado = false;
   });
   hoja.addEventListener('pointermove', e => {
     if (!g || e.pointerId !== g.id) return;
-    const dx = e.clientX - g.x, dy = e.clientY - g.y;
+    const dx = dedoX(e) - g.x, dy = dedoY(e) - g.y;
     if (!g.eje) {
       if (Math.hypot(dx, dy) < 10) return;
       if (Math.abs(dx) > Math.abs(dy)) g.eje = hojaAbierta.desde === 'ficha' ? 'x' : 'nada';
@@ -2414,7 +2415,7 @@ function gestosHoja(hoja) {
   });
   const soltar = e => {
     if (!g || e.pointerId !== g.id) return;
-    const dx = e.clientX - g.x, dy = e.clientY - g.y;
+    const dx = dedoX(e) - g.x, dy = dedoY(e) - g.y;
     const v = dy / Math.max(1, performance.now() - g.t);   // px/ms
     if (g.eje === 'y') {
       hoja.classList.remove('arrastrando');
@@ -2695,19 +2696,19 @@ function gestosHistorial(lista) {
   let g = null, tocado = false;
   lista.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    g = { x: e.clientX, y: e.clientY, id: e.pointerId, eje: null };
+    g = { x: dedoX(e), y: dedoY(e), id: e.pointerId, eje: null };
     tocado = false;
   });
   lista.addEventListener('pointermove', e => {
     if (!g || e.pointerId !== g.id || g.eje) return;
-    const dx = e.clientX - g.x, dy = e.clientY - g.y;
+    const dx = dedoX(e) - g.x, dy = dedoY(e) - g.y;
     if (Math.hypot(dx, dy) < 10) return;
     g.eje = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
     tocado = g.eje === 'x';
   });
   const soltar = e => {
     if (!g || e.pointerId !== g.id) return;
-    const dx = e.clientX - g.x, dy = e.clientY - g.y;
+    const dx = dedoX(e) - g.x, dy = dedoY(e) - g.y;
     if (e.type !== 'pointercancel' && g.eje === 'x' && Math.abs(dx) > 50 && Math.abs(dx) > 1.5 * Math.abs(dy)) {
       const k = HIST_PESTANAS.indexOf(histVista.tab) + (dx < 0 ? 1 : -1);
       if (k >= 0 && k < HIST_PESTANAS.length) cambiarHistorial(HIST_PESTANAS[k], dx < 0 ? 1 : -1);
@@ -2767,6 +2768,30 @@ async function accionHistorial(e) {
 // ===========================================================================
 // Arranque
 // ===========================================================================
+// Móvil tumbado (v11.21, CR-17, §5.114): en un móvil (táctil, apaisado, ≤ 500 px de
+// alto) la página se contrarrota y sigue en vertical respecto al móvil, como en La
+// Última Gota. Hasta la v11.20 el panal se quedaba en una tira de 616 × 34 px. El
+// CSS (:root[data-giro]) gira el <body>; el dedo y las medidas se giran con
+// aPagina y rectEnPagina (input.js). El ángulo dice hacia qué lado: con 270 el
+// móvil está tumbado al otro lado y se gira al revés. En el PC no cambia nada.
+function anguloPantalla() {
+  const a = screen.orientation ? screen.orientation.angle : Number(window.orientation || 0);
+  return ((a % 360) + 360) % 360;
+}
+function vigilarGiro() {
+  const tactil = matchMedia('(pointer: coarse)');
+  const mirar = () => {
+    const d = document.documentElement.dataset;
+    if (tactil.matches && innerWidth > innerHeight && innerHeight <= 500) d.giro = anguloPantalla() === 270 ? '270' : '90';
+    else delete d.giro;
+  };
+  mirar();
+  addEventListener('resize', mirar);
+  addEventListener('orientationchange', mirar);
+  if (screen.orientation) screen.orientation.addEventListener('change', mirar);
+}
+vigilarGiro();
+
 window.addEventListener('DOMContentLoaded', () => {
   canvas = document.getElementById('board');
   ctx = canvas.getContext('2d');
@@ -3020,7 +3045,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (pantalla === 'partida') resize(); else { medirFondo(); marcarBajado(); }
     // La consulta va pegada a la barra: si cambia la ventana, se recoloca.
     if (hojaAbierta && hojaAbierta.desde === 'partida')
-      hoja.style.top = Math.round(document.getElementById('barra').getBoundingClientRect().bottom + 6) + 'px';
+      hoja.style.top = Math.round(rectEnPagina(document.getElementById('barra')).bottom + 6) + 'px';
   });
   // El hueco del panal también cambia sin que cambie la ventana: cada modo tiene
   // su bloque de riesgo (plagas, helada o nada) y cada uno mide distinto. Hasta
@@ -3037,11 +3062,14 @@ window.addEventListener('DOMContentLoaded', () => {
 
   // Un enlace compartido (v11.9, T-30): se lee y se quita de la dirección en el
   // acto, para que recargar no vuelva a empezar la partida.
-  const enlazado = codigoDeBusqueda(location.search);
-  if (enlazado !== null) {
+  // Con un `c=` que no se puede leer (mal codificado), lo mismo: se quita y se avisa
+  // (v11.21, auditoría SEG-09). Hasta la v11.20 no decía nada y se quedaba en la dirección.
+  const enlazado = codigoDeBusqueda(location.search), conC = /[?&]c=/.test(location.search);
+  if (conC) {
     try { history.replaceState(null, '', location.pathname + location.hash); } catch { /* se queda; no pasa nada */ }
   }
   mostrarPantalla('inicio');
   if (enlazado !== null) abrirEnlace(enlazado);
+  else if (conC) avisoAbajo('Ese enlace no es de una partida.');
   requestAnimationFrame(frame);
 });
