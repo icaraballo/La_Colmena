@@ -66,10 +66,75 @@ function encuadrar(s, width, height, maxR) {
   layout.R = R * k; layout.w = w * k;
 }
 
+// La subida en ola (v11.22, T-14): las celdas de la jugada que suben un peldaño
+// lo suben con un rebote, una detrás de otra por donde pasó el dedo, y sueltan un
+// aro blanco al llegar. app.js las apunta al jugar (i → { s, de, t0 }); el motor
+// ya ha subido la celda, esto sólo cambia dónde se dibuja durante medio segundo.
+// Sube hasta de + 1,25 (se pasa un cuarto de peldaño) y se asienta en de + 1.
+const subidas = new Map();
+const SUBIDA_MS = 170, ASIENTO_MS = 265, OLA_MS = 40, ARO_MS = 310;
+let relojSubida = 0;   // el `now` del último dibujo, para topY fuera de draw
+
+// Una curva cubic-bezier(x1, y1, x2, y2) de CSS: busca el parámetro por bisección.
+function curva(x1, y1, x2, y2) {
+  const b = (p1, p2, u) => 3 * (1 - u) * (1 - u) * u * p1 + 3 * (1 - u) * u * u * p2 + u * u * u;
+  return t => {
+    let a = 0, z = 1, u = t;
+    for (let n = 0; n < 20; n++) { u = (a + z) / 2; if (b(x1, x2, u) < t) a = u; else z = u; }
+    return b(y1, y2, u);
+  };
+}
+const subir = curva(0.2, 0.7, 0.3, 1), asentar = curva(0.4, 0, 0.6, 1);
+
+// La subida en marcha de una celda: { h, de, f } (altura visual con decimales,
+// el peldaño de antes y cuánto va de uno a otro, de 0 a 1), o null si no sube.
+function subidaDe(s, i, now = relojSubida) {
+  const u = subidas.get(i);
+  if (!u || u.s !== s || s.height[i] !== u.de + 1) return null;
+  const t = now - u.t0;
+  if (t >= ASIENTO_MS) return null;
+  const h = t <= 0 ? u.de
+          : t < SUBIDA_MS ? u.de + 1.25 * subir(t / SUBIDA_MS)
+          : u.de + 1.25 - 0.25 * asentar((t - SUBIDA_MS) / (ASIENTO_MS - SUBIDA_MS));
+  return { h, de: u.de, f: Math.min(1, Math.max(0, h - u.de)) };
+}
+
 // Altura en píxeles a la que se dibuja la cara de arriba de una celda.
 function topY(s, i) {
-  const h = s.height[i];
+  const sub = subidaDe(s, i), h = sub ? sub.h : s.height[i];
   return layout.cy[i] - Math.max(0, h - 1) * LIFT;
+}
+
+// Mezcla de dos colores #rrggbb, en #rrggbb (shade los sigue entendiendo).
+function mezclar(a, b, f) {
+  const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16);
+  const c = k => Math.round(((x >> k) & 255) + (((y >> k) & 255) - ((x >> k) & 255)) * f);
+  return '#' + ((1 << 24) | (c(16) << 16) | (c(8) << 8) | c(0)).toString(16).slice(1);
+}
+
+// El reborde de cera (v11.22, T-13): luz en el canto izquierdo y los dos de arriba,
+// sombra en el derecho y los dos de abajo, y un aro interior color cera. La luz y
+// la sombra se compensan, así que el brillo medio de la cara (el nivel) no cambia.
+// En las apagadas del fallo explicado va a la opacidad de lo apagado.
+const REBORDE_APAGADO = 0.42;
+function reborde(ctx, x, y, R, h) {
+  const r = R * 0.95, w = Math.sqrt(3) * r / 2;
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = R * 0.05;
+  ctx.beginPath();
+  ctx.moveTo(x - w, y + r / 2); ctx.lineTo(x - w, y - r / 2); ctx.lineTo(x, y - r); ctx.lineTo(x + w, y - r / 2);
+  ctx.strokeStyle = 'rgba(255,255,255,0.20)';
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.moveTo(x + w, y - r / 2); ctx.lineTo(x + w, y + r / 2); ctx.lineTo(x, y + r); ctx.lineTo(x - w, y + r / 2);
+  ctx.strokeStyle = 'rgba(0,0,0,0.22)';
+  ctx.stroke();
+  hexPath(ctx, x, y, R * 0.9);
+  ctx.lineWidth = R * 0.03;
+  ctx.strokeStyle = h === OPERCULADA ? 'rgba(110,76,20,0.20)' : h === MAX_LEVEL ? 'rgba(255,236,190,0.22)' : 'rgba(255,236,190,0.14)';
+  ctx.stroke();
+  ctx.restore();
 }
 
 function hexPath(ctx, x, y, R) {
@@ -113,6 +178,8 @@ function draw(ctx, s, ui, now) {
   ctx.clearRect(0, 0, width, height);
 
   const R = layout.R;
+  if (now !== undefined) relojSubida = now;
+  for (const [i, u] of subidas) if (relojSubida - u.t0 > SUBIDA_MS + ARO_MS) subidas.delete(i);
   const inChain = new Set(ui.cells);
   const capullos = new Set(s.desastres.filter(d => d.tipo === 'capullo').map(d => d.tile));
   // Celdas con el reloj del contagio debajo del nivel (v11.19): las de varroa y velutina.
@@ -157,13 +224,16 @@ function draw(ctx, s, ui, now) {
 
     const x = layout.cx[i];
     const h = s.height[i];
-    const D = Math.max(0, h - 1) * LIFT;   // el agua se dibuja a ras, sin prisma
+    // Subiendo (v11.22): la altura, el color y el número van del peldaño de antes al nuevo.
+    const sub = subidaDe(s, i);
+    const D = Math.max(0, (sub ? sub.h : h) - 1) * LIFT;   // el agua se dibuja a ras, sin prisma
     const y = layout.cy[i] - D;
     const apagada = grupoMax && !grupoMax.has(i);
-    const color = apagada ? shade(LEVEL_COLORS[h], 0.42) : LEVEL_COLORS[h];
+    const base = sub ? mezclar(LEVEL_COLORS[sub.de], LEVEL_COLORS[h], sub.f) : LEVEL_COLORS[h];
+    const color = apagada ? shade(base, 0.42) : base;
 
     if (D > 0) {
-      ctx.fillStyle = apagada ? shade(LEVEL_COLORS[h], 0.42 * 0.55) : shade(color, 0.55);
+      ctx.fillStyle = apagada ? shade(base, 0.42 * 0.55) : shade(color, 0.55);
       sidePath(ctx, x, y, R, D);
       ctx.fill();
     }
@@ -176,15 +246,23 @@ function draw(ctx, s, ui, now) {
     ctx.lineWidth = 1;
     ctx.stroke();
 
+    // Las apagadas del fallo explicado, con el reborde también apagado.
+    ctx.globalAlpha = apagada ? REBORDE_APAGADO : 1;
+    reborde(ctx, x, y, R, h);
+    ctx.globalAlpha = 1;
+
     if (!ui.sinNumeros) {
       // Con reloj de contagio debajo (v11.19, T-57), el nivel sube y encoge para
       // dejarle sitio dentro del anillo (opción B: 0,44·R, unos 13 px a 360).
       const conReloj = relojes.has(i);
-      ctx.fillStyle = apagada ? 'rgba(255,245,225,0.3)' : h >= LARVA ? 'rgba(30,20,5,0.7)' : 'rgba(255,245,225,0.8)';
       ctx.font = `600 ${Math.round(R * (conReloj ? 0.44 : 0.55))}px system-ui, sans-serif`;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
-      ctx.fillText(String(h), x, conReloj ? y - R * 0.17 : y);
+      // Subiendo, el número cambia seco a mitad de camino: con fundido cruzado, el
+      // 2 claro y el 3 oscuro (el texto cambia de tono en la larva) se veían a la vez.
+      const n = sub && sub.f < 0.5 ? sub.de : h;
+      ctx.fillStyle = apagada ? 'rgba(255,245,225,0.3)' : n >= LARVA ? 'rgba(30,20,5,0.7)' : 'rgba(255,245,225,0.8)';
+      ctx.fillText(String(n), x, conReloj ? y - R * 0.17 : y);
     }
 
     // Seda: la celda está bloqueada unos turnos.
@@ -338,6 +416,22 @@ function draw(ctx, s, ui, now) {
     }
     ctx.restore();
   }
+
+  // El aro de la subida (v11.22, T-14): al llegar arriba, un hexágono blanco que
+  // crece de 0,9·R a 1,3·R y se apaga. Sólo contorno, encima de todas las celdas
+  // (si no, las de la fila de abajo lo taparían).
+  ctx.save();
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = '#ffffff';
+  ctx.lineWidth = R * 0.04;
+  for (const [i, u] of subidas) {
+    const k = (relojSubida - u.t0 - SUBIDA_MS) / ARO_MS;
+    if (u.s !== s || k < 0 || k >= 1 || !existe(s, i)) continue;
+    ctx.globalAlpha = 0.45 * (1 - k);
+    hexPath(ctx, layout.cx[i], topY(s, i), R * (0.9 + 0.4 * k));
+    ctx.stroke();
+  }
+  ctx.restore();
 
   // Destellos: lo que acaba de pasar, marcado sobre las celdas afectadas durante
   // un segundo. Hasta la v4 la varroa, la velutina y la helada sólo existían en

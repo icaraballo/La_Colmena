@@ -1147,6 +1147,15 @@ function onCommit(cells) {
   // meter datos de interfaz en el estado del motor.
   S.streakMax = Math.max(S.streakMax || 0, S.streak);
   S.jugadaMax = Math.max(S.jugadaMax || 0, cells.length);
+  // La subida en ola (v11.22, T-14): las de la jugada que han subido un peldaño, en
+  // el orden del dedo. La jugada ya está aplicada y no se espera a nada; si queda
+  // una ola en marcha de la jugada anterior, se termina de golpe.
+  subidas.clear();
+  if (!sinAnimar()) {
+    const t = performance.now();
+    cells.filter(i => S.height[i] === antes[i] + 1)
+         .forEach((i, k) => subidas.set(i, { s: S, de: antes[i], t0: t + k * OLA_MS }));
+  }
   if (S.last.type === 'harvest') {
     const t = performance.now();
     cells.forEach((i, k) => abejas.push({
@@ -1213,7 +1222,7 @@ function prepararPartida(estado, dur) {
   destellos.length = 0;
   document.getElementById('fin').hidden = true;
   drag.cells = []; drag.desde = []; drag.trail = []; drag.deshaciendo = false; drag.fuera = false;
-  abejas.length = 0;
+  abejas.length = 0; subidas.clear();
   logItems = ''; logItemsEn = -1; logFallo = ''; logFalloEn = -1;
   falloEn = -1; plagaNueva = null; cascada = null;
   setText('seed', `semilla ${codigoActual() || S.seed}`);
@@ -1414,7 +1423,7 @@ function deshacerPuzle() {
   tut.aviso = ''; clearTimeout(tut.alFinal);
   document.getElementById('fin').hidden = true;
   drag.cells = []; drag.desde = []; drag.trail = []; drag.deshaciendo = false; drag.fuera = false;
-  abejas.length = 0; destellos.length = 0;
+  abejas.length = 0; destellos.length = 0; subidas.clear();
   redraw();
 }
 

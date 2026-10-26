@@ -1885,5 +1885,35 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   ok(['Thumbs.db', 'desktop.ini', '.env*', '*.log', 'coverage/', '.vscode/', '.idea/'].every(l => gi.split(/\r?\n/).includes(l)), '.gitignore con lo de Windows y los editores');
 }
 
+// --- la v11.22: el reborde de cera (T-13) y la subida en ola (T-14) ------------------------------------
+{
+  // render.js en su propio ámbito: en el nivel raíz sólo declara (el canvas lo usa draw).
+  const fs = require('fs'), path = require('path'), vm = require('vm');
+  const leer = f => fs.readFileSync(path.join(__dirname, '..', 'js', f), 'utf8');
+  const R = vm.runInNewContext(leer('constants.js') + '\n' + leer('render.js') +
+    '\n({ subidas, subidaDe, mezclar, curva, SUBIDA_MS, ASIENTO_MS, OLA_MS, ARO_MS, LEVEL_COLORS })', {});
+  const s = { height: [3, 0] };
+  R.subidas.set(0, { s, de: 2, t0: 1000 });
+  const h = t => { const x = R.subidaDe(s, 0, 1000 + t); return x && x.h; };
+  eq(h(-10), 2, 'antes de su turno en la ola, la celda espera en su peldaño');
+  ok(Math.abs(h(R.SUBIDA_MS - 0.01) - 3.25) < 0.01, 'a los 170 ms se ha pasado un cuarto de peldaño');
+  ok(h(200) > 3 && h(200) < 3.25, 'y se asienta hacia el peldaño nuevo');
+  eq(R.subidaDe(s, 0, 1000 + R.ASIENTO_MS), null, 'a los 265 ms se dibuja donde está');
+  eq(R.SUBIDA_MS + 0, 170, 'subida, 170 ms'); eq(R.ASIENTO_MS + 0, 265, 'asiento hasta 265 ms');
+  eq(R.OLA_MS + 0, 40, 'la ola, 40 ms por celda'); eq(R.ARO_MS + 0, 310, 'el aro, 310 ms');
+  eq(R.subidaDe({ height: [3, 0] }, 0, 1100), null, 'una subida de otro estado (deshacer, partida nueva) no cuenta');
+  s.height[0] = 1;
+  eq(R.subidaDe(s, 0, 1100), null, 'si el motor la ha movido a otro peldaño, no se anima');
+  const c = R.curva(0.2, 0.7, 0.3, 1);
+  ok(Math.abs(c(0)) < 1e-4 && Math.abs(c(1) - 1) < 1e-4 && c(0.5) > 0.5, 'la curva de la subida empieza rápido y acaba en 1');
+  eq(R.mezclar('#2E4756', '#F79A1F', 0), '#2e4756', 'el color, al principio, el de antes');
+  eq(R.mezclar('#2E4756', '#F79A1F', 1), '#f79a1f', 'y al final, el del peldaño nuevo');
+  const app = leer('app.js'), on = /function onCommit[\s\S]*?\n\}/.exec(app)[0];
+  ok(/subidas\.clear\(\);\s*if \(!sinAnimar\(\)\)/.test(on), 'al jugar, la ola anterior se termina y con reducir movimiento no hay ola');
+  ok(/S\.height\[i\] === antes\[i\] \+ 1/.test(on), 'sólo suben las que han subido un peldaño (la cosecha, no)');
+  const dibujo = leer('render.js');
+  ok(/reborde\(ctx, x, y, R, h\);[\s\S]*?if \(!ui\.sinNumeros\)/.test(dibujo), 'el reborde va antes del número');
+}
+
 console.log(`${total - fallos}/${total} comprobaciones correctas`);
 if (fallos) process.exit(1);
