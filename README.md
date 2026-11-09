@@ -88,7 +88,8 @@ La Colmena **no tiene servidor, ni cuentas, ni analítica, ni cookies**.
   y el código de la partida. Tu nombre y tu contacto, sólo si los escribes.
 - GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.
 
-Lo mismo se lee dentro del juego: «Privacidad», al pie de los modos y en la hoja de opinar.
+Lo mismo se lee dentro del juego («Privacidad», al pie de los modos y en la hoja de opinar) y en
+[privacidad.html](https://icaraballo.github.io/La_Colmena/privacidad.html), la dirección que usa Google Play.
 
 ## Licencia
 
