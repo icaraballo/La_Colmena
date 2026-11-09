@@ -2490,8 +2490,11 @@ function apuntarPartida() {
 // Compartir una partida acabada (v11.9, T-30, §5.100): el menú del móvil
 // (WhatsApp, correo…) con el texto y el enlace que entra en ella. Donde no hay
 // menú (el PC) o falla, se copian texto y enlace. Cancelar el menú no es fallo.
+// Dentro de la app de Android la página es https://localhost/: el enlace tiene que ir a la web.
+const enApp = () => !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
 async function compartirPartida(e) {
-  const url = enlacePartida(location.origin + location.pathname, codigoPartida(e.modo, e.dificultad, e.semilla));
+  const base = enApp() ? 'https://icaraballo.github.io/La_Colmena/' : location.origin + location.pathname;
+  const url = enlacePartida(base, codigoPartida(e.modo, e.dificultad, e.semilla));
   const text = textoCompartir(e);
   if (navigator.share) {
     try { await navigator.share({ title: 'La Colmena', text, url }); return; }

@@ -1,0 +1,13 @@
+{
+  "appId": "icaraballo.lacolmena",
+  "appName": "La Colmena",
+  "webDir": "www",
+  "android": {
+    "backgroundColor": "#12100C"
+  },
+  "plugins": {
+    "SystemBars": {
+      "style": "DARK"
+    }
+  }
+}

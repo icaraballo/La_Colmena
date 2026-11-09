@@ -1,0 +1,21 @@
+{
+  "name": "la-colmena-android",
+  "version": "0.11.22",
+  "private": true,
+  "license": "UNLICENSED",
+  "description": "La Colmena como app de Android (Capacitor). La web de la carpeta de arriba es el original: aquí sólo se copia y se empaqueta.",
+  "scripts": {
+    "copiar": "node copiar-web.mjs",
+    "preparar": "node copiar-web.mjs && npx cap sync android",
+    "apk": "node construir.mjs apk",
+    "aab": "node construir.mjs aab"
+  },
+  "dependencies": {
+    "@capacitor/android": "8.6.0",
+    "@capacitor/core": "8.6.0"
+  },
+  "devDependencies": {
+    "@capacitor/assets": "^4.0.0",
+    "@capacitor/cli": "8.6.0"
+  }
+}
