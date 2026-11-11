@@ -1915,5 +1915,24 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   ok(/reborde\(ctx, x, y, R, h\);[\s\S]*?if \(!ui\.sinNumeros\)/.test(dibujo), 'el reborde va antes del número');
 }
 
+// La vibración (v11.25): los patrones y qué vibra en cada jugada. vibracion.js se
+// carga suelto: sin window ni localStorage no debe romperse.
+{
+  const vm = require('vm');
+  const ctx = { COSECHA_GRANDE: 5, COSECHA_LIMPIA: 9, setTimeout, clearTimeout };
+  vm.createContext(ctx);
+  vm.runInContext(require('fs').readFileSync(require('path').join(__dirname, '..', 'js', 'vibracion.js'), 'utf8'), ctx);
+  const V = vm.runInContext('({ patronVibra, vibraJugada, puedeVibrar, vibrar })', ctx);
+  eq(JSON.stringify(V.vibraJugada(false, 4, false)), '[]', 'subir celdas no vibra');
+  eq(JSON.stringify(V.vibraJugada(true, 3, false)), '["cosecha"]', 'una cosecha normal, un toque');
+  eq(JSON.stringify(V.vibraJugada(true, 5, false)), '["grande"]', 'la cosecha grande, desde COSECHA_GRANDE');
+  eq(JSON.stringify(V.vibraJugada(true, 9, true)), '["limpia","fallo"]', 'la que espanta todas, y el fallo detrás');
+  eq(JSON.stringify(V.vibraJugada(false, 2, true)), '["fallo"]', 'el fallo solo');
+  eq(JSON.stringify(V.patronVibra(['cosecha', 'fallo'])), '[30,250,180]', 'dos patrones seguidos, con su pausa');
+  eq(JSON.stringify(V.patronVibra(['grande', 'fin'])), '[45,70,45,250,90]', 'la pausa entre patrones va en un hueco de silencio');
+  ok(V.puedeVibrar() === false, 'sin navegador no vibra');
+  V.vibrar('record');   // no debe lanzar
+}
+
 console.log(`${total - fallos}/${total} comprobaciones correctas`);
 if (fallos) process.exit(1);

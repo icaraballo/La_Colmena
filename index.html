@@ -734,18 +734,30 @@ footer .sem{font-variant-numeric:tabular-nums}
 /* Privacidad (v11.20, auditoría SEG-03, §5.114): una hoja como la de opinar, pero de
    lo que mide su texto. Se abre desde el pie de los modos y desde la línea de
    privacidad de opinar; encima de opinar, así que al cerrarla se vuelve a ella. */
-#privacidad-fondo{position:fixed;inset:0;background:rgba(18,16,12,.55);z-index:36;opacity:0;transition:opacity .25s ease-out}
-#privacidad-fondo.abierta{opacity:1}
-#privacidad{position:fixed;left:0;right:0;bottom:0;max-height:calc(100 * var(--vh) - 24px);z-index:37;max-width:480px;margin:0 auto;
+#privacidad-fondo,#ajustes-fondo{position:fixed;inset:0;background:rgba(18,16,12,.55);z-index:36;opacity:0;transition:opacity .25s ease-out}
+#privacidad-fondo.abierta,#ajustes-fondo.abierta{opacity:1}
+#privacidad,#ajustes{position:fixed;left:0;right:0;bottom:0;max-height:calc(100 * var(--vh) - 24px);z-index:37;max-width:480px;margin:0 auto;
   background:#1c1710;border-top:3px solid #9fd67a;border-radius:20px 20px 0 0;
   padding:10px 18px calc(16px + var(--sa-abajo));display:flex;flex-direction:column;gap:12px;
   box-shadow:0 -12px 30px rgba(0,0,0,.55);transform:translateY(100%);transition:transform .25s ease-out}
-#privacidad.abierta{transform:none}
+#privacidad.abierta,#ajustes.abierta{transform:none}
 .priv-texto{display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
 .priv-texto p{font-size:14.5px;line-height:1.45;color:#c9b99c}
 .priv-texto b{color:#ede4d3}
-#privacidad-ok{background:#9fd67a;color:#16210d}
-#privacidad-ok:hover{background:#b3e392}
+#privacidad-ok,#ajustes-ok{background:#9fd67a;color:#16210d}
+#privacidad-ok:hover,#ajustes-ok:hover{background:#b3e392}
+/* Ajustes (v11.25): la misma hoja que privacidad. Una fila por ajuste, con su
+   interruptor; de momento sólo la vibración. */
+.ajustes-lista{display:flex;flex-direction:column;gap:4px}
+.ajuste{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid #2c241a}
+.ajuste .txt{flex:1;display:flex;flex-direction:column;gap:2px}
+.ajuste b{font-size:16px;color:#ede4d3}
+.ajuste .txt span,.ajustes-nada{font-size:13px;line-height:1.35;color:#9a8d77}
+.interruptor{all:unset;flex:none;position:relative;width:50px;height:30px;border-radius:15px;background:#3a3125;cursor:pointer;transition:background .2s}
+.interruptor::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:#c9b99c;transition:transform .2s,background .2s}
+.interruptor[aria-checked="true"]{background:#F79A1F}
+.interruptor[aria-checked="true"]::after{transform:translateX(20px);background:#fff6e6}
+.interruptor:focus-visible{outline:2px solid #9fd67a;outline-offset:2px}
 /* El enlace «Privacidad»: al pie de los modos, junto a la versión, y en opinar. */
 .modos-pie{align-self:center;display:flex;align-items:baseline;gap:6px;font-size:11px;color:#8c7f6a}
 .enlace-priv{all:unset;cursor:pointer;color:#c9b99c;text-decoration:underline;text-underline-offset:2px}
@@ -985,7 +997,7 @@ footer .sem{font-variant-numeric:tabular-nums}
     </button>
 
     <!-- La versión y la privacidad (v11.20, §5.114), al final de todo. -->
-    <p class="modos-pie"><span id="inicio-version"></span>·<button class="enlace-priv" id="privacidad-inicio">Privacidad</button></p>
+    <p class="modos-pie"><span id="inicio-version"></span>·<button class="enlace-priv" id="ajustes-inicio">Ajustes</button>·<button class="enlace-priv" id="privacidad-inicio">Privacidad</button></p>
   </div>
 </section>
 
@@ -1469,6 +1481,23 @@ footer .sem{font-variant-numeric:tabular-nums}
   <button type="button" class="op-enviar" id="privacidad-ok">Entendido</button>
 </div>
 
+<!-- Ajustes (v11.25): desde el pie de los modos. Aquí irá lo que se pueda cambiar
+     (la paleta de colores…). -->
+<div id="ajustes-fondo" hidden></div>
+<div id="ajustes" role="dialog" aria-modal="true" aria-labelledby="ajustes-titulo" hidden>
+  <div class="hoja-asa"><span></span></div>
+  <div class="op-cab"><h2 id="ajustes-titulo">Ajustes</h2>
+    <button type="button" class="op-x" id="ajustes-cerrar" aria-label="Cerrar">✕</button></div>
+  <div class="ajustes-lista">
+    <div class="ajuste" id="ajuste-vibracion-fila">
+      <span class="txt"><b id="ajuste-vibracion-nombre">Vibración</b><span>Al cosechar, al fallar y al acabar la partida.</span></span>
+      <button type="button" class="interruptor" id="ajuste-vibracion" role="switch" aria-checked="true" aria-labelledby="ajuste-vibracion-nombre"></button>
+    </div>
+    <p class="ajustes-nada" id="ajustes-nada" hidden>En este dispositivo no hay nada que ajustar todavía: la vibración sólo funciona en móviles Android.</p>
+  </div>
+  <button type="button" class="op-enviar" id="ajustes-ok">Hecho</button>
+</div>
+
 <!-- Las tarjetas de primera vez (v11.15, T-46d, §5.108; forma A): una hoja desde
      abajo la primera vez que sale cada plaga (Contrarreloj y Contagio) y la primera
      helada (Invierno). Oscurece el panal sin taparlo; no se juega con ella abierta y
@@ -1490,24 +1519,25 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.24"></script>
-<script src="js/state.js?v=11.24"></script>
-<script src="js/bot-tonto.js?v=11.24"></script>
-<script src="js/guardado.js?v=11.24"></script>
+<script src="js/constants.js?v=11.25"></script>
+<script src="js/state.js?v=11.25"></script>
+<script src="js/bot-tonto.js?v=11.25"></script>
+<script src="js/guardado.js?v=11.25"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.24"></script>
-<script src="js/render.js?v=11.24"></script>
-<script src="js/input.js?v=11.24"></script>
+<script src="js/historial.js?v=11.25"></script>
+<script src="js/render.js?v=11.25"></script>
+<script src="js/input.js?v=11.25"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.24"></script>
+<script src="js/puzles.js?v=11.25"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.24"></script>
+<script src="js/tutorial.js?v=11.25"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.24"></script>
-<script src="puzles/buscador.js?v=11.24"></script>
-<script src="puzles/juego.js?v=11.24"></script>
-<script src="js/pista.js?v=11.24"></script>
-<script src="js/app.js?v=11.24"></script>
+<script src="puzles/objetivos.js?v=11.25"></script>
+<script src="puzles/buscador.js?v=11.25"></script>
+<script src="puzles/juego.js?v=11.25"></script>
+<script src="js/pista.js?v=11.25"></script>
+<script src="js/vibracion.js?v=11.25"></script>
+<script src="js/app.js?v=11.25"></script>
 </body>
 </html>

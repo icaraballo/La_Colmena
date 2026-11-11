@@ -588,6 +588,41 @@ function cerrarPrivacidad() {
   if (privacidadOrigen && document.contains(privacidadOrigen) && privacidadOrigen.offsetParent) privacidadOrigen.focus({ preventScroll: true });
   privacidadOrigen = null;
 }
+// Ajustes (v11.25): una hoja como la de privacidad, desde el pie de los modos. De
+// momento sólo la vibración; aquí irá lo que venga (la paleta de colores…).
+let ajustesAbiertos = false, ajustesOrigen = null, ajustesCierre = 0;
+function pintarAjustes() {
+  const b = document.getElementById('ajuste-vibracion');
+  b.setAttribute('aria-checked', String(vibracionOn));
+  document.getElementById('ajuste-vibracion-fila').hidden = !puedeVibrar();
+  document.getElementById('ajustes-nada').hidden = puedeVibrar();
+}
+function abrirAjustes() {
+  cerrarPop();
+  clearTimeout(ajustesCierre);
+  ajustesAbiertos = true;
+  ajustesOrigen = document.activeElement;
+  pintarAjustes();
+  const h = document.getElementById('ajustes'), velo = document.getElementById('ajustes-fondo');
+  h.hidden = false; velo.hidden = false;
+  h.getBoundingClientRect();
+  h.classList.add('abierta'); velo.classList.add('abierta');
+  document.getElementById('ajustes-ok').focus({ preventScroll: true });
+}
+function cerrarAjustes() {
+  if (!ajustesAbiertos) return;
+  ajustesAbiertos = false;
+  const h = document.getElementById('ajustes'), velo = document.getElementById('ajustes-fondo');
+  h.classList.remove('abierta'); velo.classList.remove('abierta');
+  ajustesCierre = setTimeout(() => { h.hidden = true; velo.hidden = true; }, 250);
+  if (ajustesOrigen && document.contains(ajustesOrigen) && ajustesOrigen.offsetParent) ajustesOrigen.focus({ preventScroll: true });
+  ajustesOrigen = null;
+}
+function cambiarVibracion() {
+  fijarVibracion(!vibracionOn);
+  pintarAjustes();
+  if (vibracionOn) vibrar('cosecha');   // para notar que vuelve
+}
 async function enviarOpinion(e) {
   e.preventDefault();
   const form = document.getElementById('opinion-form'), boton = document.getElementById('opinion-enviar');
@@ -610,6 +645,9 @@ async function enviarOpinion(e) {
   document.getElementById('opinion-gracias').hidden = false;
   document.getElementById('opinion-volver').focus({ preventScroll: true });
 }
+// Si la partida acaba en el fallo de este turno, el final va detrás del fallo:
+// un patrón nuevo corta el que suena.
+function vibrarFin(nombre) { vibrar(falloEn === S.turn ? ['fallo', nombre] : nombre); }
 function pintarFin() {
   const el = document.getElementById('fin');
   const tutorial = enTutorial();
@@ -639,6 +677,12 @@ function pintarFin() {
   document.getElementById('fin-compartir').hidden = !MODOS_HISTORIAL.includes(S.modo) || !!cfg.puzle;
   el.classList.toggle('puzle', !!cfg.puzle);
   pintarFinOpinar(tutorial);
+  // Nivel ganado, celebración; perdido, el toque del final (v11.25). Si acaba en
+  // fallo, el del fallo ya ha vibrado en la jugada.
+  if (tutorial || cfg.puzle) {
+    const r = S.puzle && S.puzle.resultado;
+    if (r && r.gana) vibrar('record'); else if (!(r && r.motivo === 'fallo')) vibrar('fin');
+  }
   if (tutorial) { pintarFinTutorial(); return; }
   if (cfg.puzle) { mostrar('puzle-pie', !abajo); pintarFinPuzle(); el.hidden = false; return; }
   setText('fin-menu', '‹ Menú');
@@ -664,6 +708,7 @@ function pintarFin() {
     const clave = `${S.modo}.${S.dificultad}`;
     const antes = leerRecords()[clave];
     const nuevo = S.completado && guardarRecord(clave, S.turn, true);
+    vibrarFin(nuevo ? 'record' : 'fin');
     rec.textContent = nuevo ? (antes ? `¡Récord! El anterior era ${antes} turnos` : '¡Primer récord!')
       : S.completado ? `Panal completo · tu récord: ${antes} turnos`
       : `Sin completar: ${abiertas(S)} de ${CERRADAS_EXPANSION.length} celdas abiertas` + (antes ? ` · tu récord: ${antes} turnos` : '');
@@ -672,12 +717,14 @@ function pintarFin() {
     const clave = `${S.modo}.${S.dificultad}`;
     const antes = leerRecords()[clave] || 0;
     const nuevo = guardarRecord(clave, S.score);
+    vibrarFin(nuevo ? 'record' : 'fin');
     rec.textContent = nuevo
       ? (antes ? `¡Récord! El anterior era ${antes.toLocaleString('es-ES')}` : '¡Primer récord!')
       : `Tu récord: ${antes.toLocaleString('es-ES')}`;
     rec.className = 'record' + (nuevo ? ' nuevo' : '');
   } else {
     rec.textContent = 'Panal libre no puntúa';
+    vibrarFin('fin');
     rec.className = 'record';
   }
 
@@ -1119,7 +1166,10 @@ function onCommit(cells) {
   if (tutorial && nivelTutorial().cancelar && !tut.cancelado) return;
   const antes = S.height.slice();
   const copia = S.puzle ? copiaPuzle(S) : null;
+  const esCosecha = nivelCadena(S, cells) === MAX_LEVEL;
   if (!commitTurn(S, cells)) return;
+  // La vibración (v11.25): la cosecha según su tamaño y el fallo, si lo hay.
+  vibrar(vibraJugada(esCosecha, cells.length, S.eventos.some(e => e.type === 'fallback')));
   if (copia && tutorial) {
     historiaPuzle.push(copia);
     tut.aviso = '';
@@ -2863,6 +2913,10 @@ window.addEventListener('DOMContentLoaded', () => {
     document.getElementById(id).addEventListener('click', abrirPrivacidad));
   ['privacidad-cerrar', 'privacidad-ok', 'privacidad-fondo'].forEach(id =>
     document.getElementById(id).addEventListener('click', cerrarPrivacidad));
+  document.getElementById('ajustes-inicio').addEventListener('click', abrirAjustes);
+  ['ajustes-cerrar', 'ajustes-ok', 'ajustes-fondo'].forEach(id =>
+    document.getElementById(id).addEventListener('click', cerrarAjustes));
+  document.getElementById('ajuste-vibracion').addEventListener('click', cambiarVibracion);
   pintarTarjeta();
   pintarEscalaExpansion('normal');
   pintarEscaleras();
@@ -3032,6 +3086,7 @@ window.addEventListener('DOMContentLoaded', () => {
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
       if (privacidadAbierta) cerrarPrivacidad();
+      else if (ajustesAbiertos) cerrarAjustes();
       else if (opinionDatos) cerrarOpinion();
       else if (tarjetaAbierta) cerrarTarjeta();
       else if (hojaAbierta) cerrarHoja();
