@@ -1,6 +1,6 @@
 {
   "name": "la-colmena-android",
-  "version": "0.11.27",
+  "version": "0.11.28",
   "private": true,
   "license": "UNLICENSED",
   "description": "La Colmena como app de Android (Capacitor). La web de la carpeta de arriba es el original: aquí sólo se copia y se empaqueta.",

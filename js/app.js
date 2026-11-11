@@ -2161,11 +2161,12 @@ function volverAlInicio({ bajado = true } = {}) {
 }
 
 // El botón «atrás» del móvil (v11.26): sube un escalón, igual que los botones «‹ Menú»,
-// y sólo sale de la app desde la portada o los modos, y avisando antes. Devuelve true si
+// y sólo sale de la app desde la portada o los modos, y preguntando antes (Sí / No). Devuelve true si
 // hizo algo (false: ahí es la app la que sale). Cierra primero lo que esté encima (cuadros, hojas),
 // como Escape. De la partida y de Tus partidas vuelve a los modos (v11.7); de un
-// nivel de Puzzle, al mapa; el tutorial, a la portada; en la portada y los modos, el aviso de salir.
+// nivel de Puzzle, al mapa; el tutorial, a la portada; en la portada y los modos, «¿Salir?».
 function atras() {
+  if (!document.getElementById('salir').hidden) { cerrarSalir(); return true; }   // atrás con «¿Salir?» abierto = «No»
   const enlace = document.getElementById('enlace');
   if (enlace && !enlace.hidden) { document.getElementById('enlace-cancelar').click(); return true; }
   if (privacidadAbierta) { cerrarPrivacidad(); return true; }
@@ -2187,17 +2188,24 @@ function atras() {
     return true;
   }
   if (pantalla === 'escalera' || pantalla === 'tut-final') { mostrarPantalla('inicio'); return true; }
-  // La portada y los modos son la salida: el primer «atrás» avisa y el segundo, a los
-  // 2 s como mucho, sale (devuelve false). Así un toque sin querer no cierra la app.
-  if (pantalla === 'inicio') {
-    if (Date.now() < atrasHasta) return false;
-    atrasHasta = Date.now() + 2200;
-    avisoAbajo('Pulsa otra vez para salir');
-    return true;
-  }
+  // La portada y los modos son la salida: se pregunta «¿Salir de La Colmena?» (Sí / No).
+  if (pantalla === 'inicio') { abrirSalir(); return true; }
   return false;
 }
-let atrasHasta = 0;
+function abrirSalir() {
+  const el = document.getElementById('salir');
+  el.hidden = false;
+  document.getElementById('salir-no').focus({ preventScroll: true });
+}
+function cerrarSalir() { document.getElementById('salir').hidden = true; }
+function iniciarSalir() {
+  document.getElementById('salir-no').addEventListener('click', cerrarSalir);
+  document.getElementById('salir-si').addEventListener('click', () => {
+    try { window.Capacitor.Plugins.App.exitApp(); } catch { cerrarSalir(); }
+  });
+  const el = document.getElementById('salir');
+  el.addEventListener('click', ev => { if (ev.target === el) cerrarSalir(); });
+}
 // En la app de Android, @capacitor/app avisa del gesto o botón atrás; si no hay nada
 // que subir, sale (tras el aviso de «pulsa otra vez»).
 function vigilarAtras() {
@@ -3130,6 +3138,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'pop-velo') return;   // lo cierra su click, sin tocar lo de debajo
     if (!p.contains(e.target) && !popAncla.contains(e.target)) cerrarPop();
   }, true);
+  iniciarSalir();
   vigilarAtras();
   // Escape cierra lo que esté encima; en la ficha, las flechas cambian de modo.
   document.addEventListener('keydown', e => {
