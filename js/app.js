@@ -2161,10 +2161,10 @@ function volverAlInicio({ bajado = true } = {}) {
 }
 
 // El botón «atrás» del móvil (v11.26): sube un escalón, igual que los botones «‹ Menú»,
-// y sólo sale de la app desde la portada. Devuelve true si hizo algo (en la portada,
-// false: ahí es la app la que sale). Cierra primero lo que esté encima (cuadros, hojas),
+// y sólo sale de la app desde la portada o los modos, y avisando antes. Devuelve true si
+// hizo algo (false: ahí es la app la que sale). Cierra primero lo que esté encima (cuadros, hojas),
 // como Escape. De la partida y de Tus partidas vuelve a los modos (v11.7); de un
-// nivel de Puzzle, al mapa; de los modos, a la portada; el tutorial, a la portada.
+// nivel de Puzzle, al mapa; el tutorial, a la portada; en la portada y los modos, el aviso de salir.
 function atras() {
   const enlace = document.getElementById('enlace');
   if (enlace && !enlace.hidden) { document.getElementById('enlace-cancelar').click(); return true; }
@@ -2187,16 +2187,24 @@ function atras() {
     return true;
   }
   if (pantalla === 'escalera' || pantalla === 'tut-final') { mostrarPantalla('inicio'); return true; }
-  if (pantalla === 'inicio' && document.getElementById('inicio').scrollTop > 24) { subirAlInicio(); return true; }
+  // La portada y los modos son la salida: el primer «atrás» avisa y el segundo, a los
+  // 2 s como mucho, sale (devuelve false). Así un toque sin querer no cierra la app.
+  if (pantalla === 'inicio') {
+    if (Date.now() < atrasHasta) return false;
+    atrasHasta = Date.now() + 2200;
+    avisoAbajo('Pulsa otra vez para salir');
+    return true;
+  }
   return false;
 }
+let atrasHasta = 0;
 // En la app de Android, @capacitor/app avisa del gesto o botón atrás; si no hay nada
-// que subir, la app pasa a segundo plano (como cualquier otra), no se cierra a la brava.
+// que subir, sale (tras el aviso de «pulsa otra vez»).
 function vigilarAtras() {
   try {
     const cap = window.Capacitor, App = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.App;
     if (!App) return;
-    App.addListener('backButton', () => { if (!atras()) App.minimizeApp(); });
+    App.addListener('backButton', () => { if (!atras()) App.exitApp(); });
   } catch { /* sin el plugin, atrás hace lo de siempre */ }
 }
 
