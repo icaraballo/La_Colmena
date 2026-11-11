@@ -2160,6 +2160,46 @@ function volverAlInicio({ bajado = true } = {}) {
   document.getElementById('inicio').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
 }
 
+// El botón «atrás» del móvil (v11.26): sube un escalón, igual que los botones «‹ Menú»,
+// y sólo sale de la app desde la portada. Devuelve true si hizo algo (en la portada,
+// false: ahí es la app la que sale). Cierra primero lo que esté encima (cuadros, hojas),
+// como Escape. De la partida y de Tus partidas vuelve a los modos (v11.7); de un
+// nivel de Puzzle, al mapa; de los modos, a la portada; el tutorial, a la portada.
+function atras() {
+  const enlace = document.getElementById('enlace');
+  if (enlace && !enlace.hidden) { document.getElementById('enlace-cancelar').click(); return true; }
+  if (privacidadAbierta) { cerrarPrivacidad(); return true; }
+  if (ajustesAbiertos) { cerrarAjustes(); return true; }
+  if (opinionDatos) { cerrarOpinion(); return true; }
+  if (tarjetaAbierta) { cerrarTarjeta(); return true; }
+  if (hojaAbierta) { cerrarHoja(); return true; }
+  if (fichaNivel) { cerrarFichaNivel(); return true; }
+  if (popAncla) { cerrarPop(); return true; }
+  if (pantalla === 'partida') {
+    if (enTutorial()) { clearTimeout(tut.alFinal); volverAlInicio({ bajado: false }); }
+    else if (S.puzle) irACapitulos();
+    else volverAlInicio();
+    return true;
+  }
+  if (pantalla === 'puzles' || pantalla === 'historial') {
+    mostrarPantalla('inicio', { bajado: true });
+    document.getElementById('inicio').animate([{ opacity: 0 }, { opacity: 1 }], { duration: 200, easing: 'ease-out' });
+    return true;
+  }
+  if (pantalla === 'escalera' || pantalla === 'tut-final') { mostrarPantalla('inicio'); return true; }
+  if (pantalla === 'inicio' && document.getElementById('inicio').scrollTop > 24) { subirAlInicio(); return true; }
+  return false;
+}
+// En la app de Android, @capacitor/app avisa del gesto o botón atrás; si no hay nada
+// que subir, la app pasa a segundo plano (como cualquier otra), no se cierra a la brava.
+function vigilarAtras() {
+  try {
+    const cap = window.Capacitor, App = cap && cap.isNativePlatform && cap.isNativePlatform() && cap.Plugins && cap.Plugins.App;
+    if (!App) return;
+    App.addListener('backButton', () => { if (!atras()) App.minimizeApp(); });
+  } catch { /* sin el plugin, atrás hace lo de siempre */ }
+}
+
 // Del inicio a la partida: el inicio se funde y la partida aparece. `preparar`
 // pone el estado en juego cuando la partida ya se ve, para que se mida bien.
 function entrarEnPartida(preparar) {
@@ -3082,6 +3122,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (e.target.id === 'pop-velo') return;   // lo cierra su click, sin tocar lo de debajo
     if (!p.contains(e.target) && !popAncla.contains(e.target)) cerrarPop();
   }, true);
+  vigilarAtras();
   // Escape cierra lo que esté encima; en la ficha, las flechas cambian de modo.
   document.addEventListener('keydown', e => {
     if (e.key === 'Escape') {
