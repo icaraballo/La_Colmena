@@ -83,22 +83,27 @@ button.on{background:#F79A1F;color:#231500;border-color:#F79A1F;font-weight:600}
    con cinco modos se quedaba en un tercio de la pantalla. */
 #inicio{
   height:100%;display:flex;flex-direction:column;
-  padding:var(--sa-arriba) 0 var(--sa-abajo);
   overflow-y:auto;touch-action:pan-y;overscroll-behavior:contain;
   scroll-snap-type:y proximity;
 }
-.inicio-portada{min-height:100%;flex:none;display:flex;flex-direction:column;scroll-snap-align:start}
-/* El título, más abajo (v11.23): con 40 px fijos quedaba pegado arriba en los
-   móviles altos. Ahora un 11 % del alto, entre 40 y 110 px. */
-.inicio-cab{padding:clamp(40px,calc(11 * var(--vh)),110px) 20px 0;display:flex;flex-direction:column;align-items:center;gap:2px;flex:none}
-.inicio-cab h1{font-size:34px;font-weight:800;letter-spacing:-.02em;color:#ede4d3;line-height:1.15}
-.inicio-cab span{font-size:13px;color:#9a8d77}
+/* Las zonas seguras (la barra de estado y la de gestos), dentro de cada tramo y
+   no en #inicio (v11.24). Con el relleno en #inicio, el imán alineaba la portada
+   al borde del relleno: en la app del Samsung, que pinta bajo la barra de estado,
+   el inicio se quedaba 36 px bajado. El título se escondía bajo la barra,
+   «Modos de juego ⌄» se apagaba (contaba como bajado) y «⌃ Inicio» asomaba abajo. */
+.inicio-portada{min-height:100%;flex:none;display:flex;flex-direction:column;scroll-snap-align:start;
+  padding-bottom:var(--sa-abajo)}
+/* El título: un 11 % del alto, entre 40 y 110 px, y nunca a menos de 24 px de la
+   barra de estado (v11.23). En la v11.24, más grande: 42 px (34 hasta la v11.23). */
+.inicio-cab{padding:max(calc(var(--sa-arriba) + 24px),clamp(40px,calc(11 * var(--vh)),110px)) 20px 0;display:flex;flex-direction:column;align-items:center;gap:2px;flex:none}
+.inicio-cab h1{font-size:42px;font-weight:800;letter-spacing:-.02em;color:#ede4d3;line-height:1.15}
+.inicio-cab span{font-size:15px;color:#9a8d77}
 #fondo-wrap{flex:1 0 auto;min-height:clamp(110px,calc(30 * var(--vh)),200px);position:relative}
 #fondo{opacity:.9;pointer-events:none}
 .inicio-pie,.inicio-botones{padding:0 16px;display:flex;flex-direction:column;gap:8px;flex:none;
   width:100%;max-width:480px;margin:0 auto}
 .inicio-pie{padding-bottom:16px}
-.inicio-botones{padding:4px 16px 12px;scroll-snap-align:end}
+.inicio-botones{padding:calc(4px + var(--sa-arriba)) 16px calc(12px + var(--sa-abajo));scroll-snap-align:end}
 /* El botón naranja (v11.1, T-48): siempre hay uno, y es lo siguiente que te
    toca. «Continuar partida» si hay una guardada; si no, «Jugar» el último modo;
    la primera vez, «Aprende a jugar». Lo rellena pintarPrincipal(). */
@@ -628,8 +633,10 @@ footer .sem{font-variant-numeric:tabular-nums}
 .modos-subir{display:flex;flex:none}
 /* A 360×640 el tramo de los modos no cabe entero (mide 640 justos con la fila
    nueva): la fila de la flecha se queda arriba al bajar del todo, para que se vea. */
-.modos-subir{position:sticky;top:0;z-index:2;margin:0 -16px;padding:0 16px 4px;
-  background:linear-gradient(#12100C 85%,rgba(18,16,12,0))}
+.modos-subir{position:sticky;top:var(--sa-arriba);z-index:2;margin:0 -16px;padding:0 16px 4px;
+  background:linear-gradient(#12100C 85%,rgba(18,16,12,0));
+  /* Bajo la barra de estado (v11.24): una franja del fondo, para que la lista no asome por ahí. */
+  box-shadow:0 calc(-1 * var(--sa-arriba)) 0 #12100C}
 .subir{display:flex;align-items:center;gap:6px;min-height:44px;padding:0 14px 0 10px;background:#1c1710;
   border:1px solid #43372a;border-radius:22px;font-size:13px;font-weight:600;color:#ede4d3}
 .subir:hover{background:#241d14}
@@ -860,6 +867,8 @@ footer .sem{font-variant-numeric:tabular-nums}
 .enlace-botones{display:flex;gap:10px}
 .enlace-botones .secundario{flex:1;min-height:48px}
 .enlace-botones .primario{flex:1.2;min-height:48px}
+.enlace-cancelar{all:unset;cursor:pointer;display:block;margin:10px auto 0;padding:10px 18px;font-size:14px;font-weight:600;color:#9a8d77}
+.enlace-cancelar:focus-visible{outline:2px solid #9a8d77;border-radius:6px}
 .aviso-abajo{position:fixed;left:14px;right:14px;bottom:calc(20px + var(--sa-abajo));max-width:480px;margin:0 auto;z-index:25;
   background:#2a2218;border:1px solid #9fd67a;border-radius:12px;padding:10px 12px;font-size:13px;color:#ede4d3}
 /* Zona de toque de ~44 px sin cambiar el dibujo (v11.17, revisión §12): la (i)
@@ -1009,6 +1018,9 @@ footer .sem{font-variant-numeric:tabular-nums}
       <button class="secundario" id="enlace-mia">Seguir la mía</button>
       <button class="primario" id="enlace-jugar">Jugar ésta</button>
     </div>
+    <!-- v11.24: tres salidas. «Seguir la mía» entra en tu partida (hasta la v11.23 sólo
+         cerraba); «Cancelar» cierra y te deja donde estabas. -->
+    <button class="enlace-cancelar" id="enlace-cancelar">Cancelar</button>
   </div>
 </div>
 
@@ -1478,24 +1490,24 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.23"></script>
-<script src="js/state.js?v=11.23"></script>
-<script src="js/bot-tonto.js?v=11.23"></script>
-<script src="js/guardado.js?v=11.23"></script>
+<script src="js/constants.js?v=11.24"></script>
+<script src="js/state.js?v=11.24"></script>
+<script src="js/bot-tonto.js?v=11.24"></script>
+<script src="js/guardado.js?v=11.24"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.23"></script>
-<script src="js/render.js?v=11.23"></script>
-<script src="js/input.js?v=11.23"></script>
+<script src="js/historial.js?v=11.24"></script>
+<script src="js/render.js?v=11.24"></script>
+<script src="js/input.js?v=11.24"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.23"></script>
+<script src="js/puzles.js?v=11.24"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.23"></script>
+<script src="js/tutorial.js?v=11.24"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.23"></script>
-<script src="puzles/buscador.js?v=11.23"></script>
-<script src="puzles/juego.js?v=11.23"></script>
-<script src="js/pista.js?v=11.23"></script>
-<script src="js/app.js?v=11.23"></script>
+<script src="puzles/objetivos.js?v=11.24"></script>
+<script src="puzles/buscador.js?v=11.24"></script>
+<script src="puzles/juego.js?v=11.24"></script>
+<script src="js/pista.js?v=11.24"></script>
+<script src="js/app.js?v=11.24"></script>
 </body>
 </html>

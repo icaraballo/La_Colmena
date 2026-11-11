@@ -2560,7 +2560,14 @@ function preguntarSustituir({ titulo, modo, dificultad, semilla, si }, jugar) {
   setText('enlace-jugar', si);
   el.hidden = false;
   const cerrar = () => { el.hidden = true; };
-  document.getElementById('enlace-mia').onclick = cerrar;
+  // «Seguir la mía» (v11.24) entra en la partida guardada, como «Continuar partida»;
+  // hasta la v11.23 sólo cerraba, y para eso está ahora «Cancelar» (y el velo, y Escape).
+  document.getElementById('enlace-mia').onclick = () => {
+    cerrar();
+    if (hojaAbierta) { hojaOrigen = null; cerrarHoja(); }
+    continuarPartida();
+  };
+  document.getElementById('enlace-cancelar').onclick = cerrar;
   document.getElementById('enlace-jugar').onclick = () => { cerrar(); jugar(); };
   el.onclick = ev => { if (ev.target === el) cerrar(); };
   el.onkeydown = ev => { if (ev.key === 'Escape') { ev.stopPropagation(); cerrar(); } };
