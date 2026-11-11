@@ -4,7 +4,20 @@
 // Hexágonos pointy-top en falso 2.5D: cada nivel desplaza la celda LIFT px hacia
 // arriba y se dibuja el lateral del prisma debajo, de forma que la escalera se
 // lee de un vistazo.
-const LIFT = 9;
+//
+// Densidad (v11.23): el canvas va en píxeles del dispositivo, hasta ×3. Hasta la
+// v11.22 el tope era ×2, y en móviles de 2,6 o 3 (el Samsung de Iñigo) el panal se
+// estiraba y salía borroso. Todo lo que mide en píxeles fijos (LIFT, los trazos
+// finos, la letra mínima) se pensó a ×2, así que por encima de ×2 se escala con
+// PX: el panal se ve igual que antes, sólo que nítido. Con ×2 o menos, PX = 1.
+const DPR_MAX = 3;
+const dprLienzo = () => Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, DPR_MAX);
+let PX = 1;
+let LIFT = 9;
+function fijarDensidad(dpr) {
+  PX = Math.max(1, dpr / 2);
+  LIFT = 9 * PX;
+}
 
 // Los colores de cada nivel, LEVEL_COLORS, viven en constants.js desde la v10.2
 // (los usa también el editor de puzles, que no carga este fichero).
@@ -208,7 +221,7 @@ function draw(ctx, s, ui, now) {
         ctx.fillStyle = 'rgba(46,71,86,0.55)';
         ctx.fill();
         ctx.strokeStyle = '#E6B872';
-        ctx.lineWidth = 2;
+        ctx.lineWidth = 2 * PX;
         ctx.stroke();
         ctx.restore();
       } else {
@@ -243,7 +256,7 @@ function draw(ctx, s, ui, now) {
     ctx.fill();
 
     ctx.strokeStyle = 'rgba(0,0,0,0.3)';
-    ctx.lineWidth = 1;
+    ctx.lineWidth = PX;
     ctx.stroke();
 
     // Las apagadas del fallo explicado, con el reborde también apagado.
@@ -271,7 +284,7 @@ function draw(ctx, s, ui, now) {
       hexPath(ctx, x, y, R);
       ctx.clip();
       ctx.strokeStyle = 'rgba(245,245,245,0.75)';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.5 * PX;
       for (let k = -2 * R; k < 2 * R; k += R / 3) {
         ctx.beginPath();
         ctx.moveTo(x + k, y - R); ctx.lineTo(x + k + R, y + R);
@@ -287,7 +300,7 @@ function draw(ctx, s, ui, now) {
       ctx.fillStyle = '#d8d2c4';
       ctx.fill();
       ctx.strokeStyle = '#6b6254';
-      ctx.lineWidth = 1.5;
+      ctx.lineWidth = 1.5 * PX;
       ctx.stroke();
     }
   }
@@ -443,7 +456,7 @@ function draw(ctx, s, ui, now) {
     ctx.save();
     ctx.globalAlpha = (1 - k) * 0.9;
     ctx.strokeStyle = d.color;
-    ctx.lineWidth = 3 * (1 - k) + 1;
+    ctx.lineWidth = (3 * (1 - k) + 1) * PX;
     for (const i of d.tiles) {
       if (layout.cx[i] === undefined) continue;
       hexPath(ctx, layout.cx[i], topY(s, i), R * (1 + 0.25 * k));
@@ -464,7 +477,7 @@ function draw(ctx, s, ui, now) {
     ctx.fillStyle = s.item.tipo === ITEMS.REINA ? '#b04ad8' : (ultimo ? '#ff9f45' : '#ffd23f');
     ctx.fill();
     ctx.strokeStyle = 'rgba(0,0,0,0.5)';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 2 * PX;
     ctx.stroke();
     ctx.fillStyle = s.item.tipo === ITEMS.REINA ? '#fff' : '#3a2a00';
     ctx.font = `700 ${Math.round(R * 0.42)}px system-ui, sans-serif`;
@@ -496,8 +509,8 @@ function draw(ctx, s, ui, now) {
     if (pts.length > 1) {
       ctx.beginPath();
       pts.forEach(([x, y], k) => k ? ctx.lineTo(x, y) : ctx.moveTo(x, y));
-      ctx.setLineDash([2, R * 0.2]);
-      ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.lineWidth = Math.max(3, R * 0.08); ctx.stroke();
+      ctx.setLineDash([2 * PX, R * 0.2]);
+      ctx.strokeStyle = 'rgba(255,255,255,0.65)'; ctx.lineWidth = Math.max(3 * PX, R * 0.08); ctx.stroke();
       ctx.setLineDash([]);
     }
     // El punto rosa recorre el camino en bucle: 450 ms por tramo y una pausa al final.
@@ -553,8 +566,8 @@ function tileAt(s, px, py) {
 // Una etiqueta roja redonda con texto blanco, centrada en (x, y) y sin salirse del
 // canvas: «máx 3 · paso 4», «Fuera: no cuenta» (v11.2).
 function pildora(ctx, txt, x, y, R, width) {
-  // El canvas va en píxeles del dispositivo (hasta ×2, como en resize): 13 px de letra como poco.
-  const dpr = Math.min((typeof window !== 'undefined' && window.devicePixelRatio) || 1, 2);
+  // El canvas va en píxeles del dispositivo (hasta ×3, como en resize): 13 px de letra como poco.
+  const dpr = dprLienzo();
   const fs = Math.round(Math.max(13 * dpr, R * 0.34));
   ctx.font = `700 ${fs}px system-ui, sans-serif`;
   const tw = ctx.measureText(txt).width, ph = fs * 1.8, pw = tw + fs * 1.4;

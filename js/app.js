@@ -1191,7 +1191,7 @@ function resize() {
   // Con la partida oculta el hueco mide 0; se vuelve a medir al entrar.
   if (pantalla !== 'partida') return;
   const r = rectEnPagina(canvas.parentElement);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = dprLienzo(); fijarDensidad(dpr);
   canvas.width = Math.round(r.width * dpr);
   canvas.height = Math.round(r.height * dpr);
   canvas.style.width = r.width + 'px';
@@ -2071,6 +2071,33 @@ function subirAlInicio() {
   const el = document.getElementById('inicio');
   el.scrollTo({ top: 0, behavior: sinAnimar() ? 'auto' : 'smooth' });
 }
+// El inicio nunca se queda a medias (v11.23). En el Samsung, con la app, se quedó
+// parado entre la portada y los modos: «Modos de juego ⌄» apagado (ya contaba como
+// bajado) y la barra «⌃ Inicio» asomando por abajo, en plena portada. El imán de
+// CSS (scroll-snap proximity) no siempre engancha en el WebView, y un cambio de
+// alto de la ventana también puede dejarlo en medio. Así que, al soltar el dedo y
+// pararse, si está entre los dos tramos se lleva al más cercano. Dentro de los
+// modos (si miden más que la pantalla) se puede parar donde sea.
+let dedoEnInicio = false, esperaEncaje = 0;
+function encajarInicio() {
+  if (pantalla !== 'inicio' || dedoEnInicio) return;
+  const el = document.getElementById('inicio'), alto = alturaModos(), top = el.scrollTop;
+  if (top <= 1 || top >= alto - 1) return;
+  el.scrollTo({ top: top < alto / 2 ? 0 : alto, behavior: sinAnimar() ? 'auto' : 'smooth' });
+}
+function encajarLuego(ms = 160) {
+  clearTimeout(esperaEncaje);
+  esperaEncaje = setTimeout(encajarInicio, ms);
+}
+function vigilarEncaje() {
+  const el = document.getElementById('inicio');
+  el.addEventListener('touchstart', () => { dedoEnInicio = true; clearTimeout(esperaEncaje); }, { passive: true });
+  const soltar = () => { dedoEnInicio = false; encajarLuego(); };
+  el.addEventListener('touchend', soltar, { passive: true });
+  el.addEventListener('touchcancel', soltar, { passive: true });
+  // Sin dedo, cuando el desplazamiento lleva un rato quieto.
+  el.addEventListener('scroll', () => { if (!dedoEnInicio) encajarLuego(); }, { passive: true });
+}
 
 // «‹ Menú» (de la barra o de la pantalla final): se guarda y se vuelve, sin
 // preguntar, porque ya no se pierde nada (v9.1). Volver al inicio no toca S.
@@ -2131,7 +2158,7 @@ function moverFondo(now) {
 function medirFondo() {
   const c = fondo.canvas;
   const r = rectEnPagina(c.parentElement);
-  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  const dpr = dprLienzo(); fijarDensidad(dpr);
   c.width = Math.round(r.width * dpr);
   c.height = Math.round(r.height * dpr);
   c.style.width = r.width + 'px';
@@ -2834,6 +2861,7 @@ window.addEventListener('DOMContentLoaded', () => {
   pintarEscaleras();
 
   document.getElementById('inicio').addEventListener('scroll', marcarBajado, { passive: true });
+  vigilarEncaje();
   document.getElementById('elegir-modo').addEventListener('click', verModos);
   // Al bajar a los modos (v11.4): volver a la portada, Tus partidas y el «#».
   document.getElementById('subir-inicio').addEventListener('click', subirAlInicio);
@@ -3054,7 +3082,7 @@ window.addEventListener('DOMContentLoaded', () => {
     if (window.innerWidth !== anchoVentana) cerrarPop();
     else if (popAncla) recolocarPop();
     anchoVentana = window.innerWidth;
-    if (pantalla === 'partida') resize(); else { medirFondo(); marcarBajado(); }
+    if (pantalla === 'partida') resize(); else { medirFondo(); marcarBajado(); encajarLuego(); }
     // La consulta va pegada a la barra: si cambia la ventana, se recoloca.
     if (hojaAbierta && hojaAbierta.desde === 'partida')
       hoja.style.top = Math.round(rectEnPagina(document.getElementById('barra')).bottom + 6) + 'px';
