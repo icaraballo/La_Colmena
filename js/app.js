@@ -595,7 +595,6 @@ function pintarAjustes() {
   const b = document.getElementById('ajuste-vibracion');
   b.setAttribute('aria-checked', String(vibracionOn));
   document.getElementById('ajuste-vibracion-fila').hidden = !puedeVibrar();
-  document.getElementById('sobre-version').textContent = VERSION;
 }
 function abrirAjustes() {
   cerrarPop();
