@@ -2974,7 +2974,6 @@ window.addEventListener('DOMContentLoaded', () => {
   ['ajustes-cerrar', 'ajustes-ok', 'ajustes-fondo'].forEach(id =>
     document.getElementById(id).addEventListener('click', cerrarAjustes));
   document.getElementById('ajuste-vibracion').addEventListener('click', cambiarVibracion);
-  document.getElementById('ajustes-privacidad').addEventListener('click', abrirPrivacidad);   // encima de Ajustes
   document.getElementById('ajustes-opinar').addEventListener('click', () => { cerrarAjustes(); abrirOpinion({ version: VERSION }); });
   pintarTarjeta();
   pintarEscalaExpansion('normal');

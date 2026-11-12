@@ -744,9 +744,6 @@ footer .sem{font-variant-numeric:tabular-nums}
   padding:10px 18px calc(16px + var(--sa-abajo));display:flex;flex-direction:column;gap:12px;
   box-shadow:0 -12px 30px rgba(0,0,0,.55);transform:translateY(100%);transition:transform .25s ease-out}
 #privacidad.abierta,#ajustes.abierta{transform:none}
-/* Privacidad se abre también desde Ajustes (v11.29): va por encima. */
-#privacidad-fondo{z-index:38}
-#privacidad{z-index:39}
 .priv-texto{display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
 .priv-texto p{font-size:14.5px;line-height:1.45;color:#c9b99c}
 .priv-texto b{color:#ede4d3}
@@ -1525,7 +1522,6 @@ footer .sem{font-variant-numeric:tabular-nums}
     </div>
     <h3 class="sobre-tit">Sobre este juego</h3>
     <p class="sobre-txt"><b>La Colmena</b> <span id="sobre-version"></span>. Un puzle de panal hexagonal: sube el panal y cosecha las abejas. Tus récords, tu historial y la partida a medias se guardan <b>sólo en este navegador</b>; no hay cuentas ni servidor.</p>
-    <button type="button" class="ajuste-fila" id="ajustes-privacidad">Privacidad <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <button type="button" class="ajuste-fila" id="ajustes-opinar" hidden>Opinar <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     <p class="sobre-txt">© 2026 Iñigo Caraballo. Todos los derechos reservados. El código se puede leer, no copiar ni modificar.</p>
     <a class="ajuste-fila" id="ajustes-github" href="https://github.com/icaraballo/La_Colmena" target="_blank" rel="noopener">Código en GitHub <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
