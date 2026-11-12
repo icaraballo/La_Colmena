@@ -43,7 +43,7 @@
    Chrome): con el móvil tumbado, desplazar la página en vertical es mover el dedo
    en horizontal. Así que se cambian los ejes, o las listas no se mueven. */
 :root[data-giro] #inicio,:root[data-giro] .encima,:root[data-giro] .hoja-filas,:root[data-giro] #puzles,
-:root[data-giro] .tut-pantalla,:root[data-giro] .op-preguntas,:root[data-giro] .priv-texto,
+:root[data-giro] .tut-pantalla,:root[data-giro] .op-preguntas,:root[data-giro] .priv-texto,:root[data-giro] .ajustes-lista,
 :root[data-giro] .hist-lista{touch-action:pan-x}
 :root[data-giro] .hist-tabs{touch-action:pan-y}
 body{
@@ -694,6 +694,9 @@ footer .sem{font-variant-numeric:tabular-nums}
    final abren una hoja del juego con el formulario; se envía por detrás. */
 .modos-subir{display:flex;justify-content:space-between;align-items:center}
 .opinar-btn{color:#F79A1F;border-color:#6b4a1c;padding:0 14px 0 12px;gap:7px}
+/* Ajustes (v11.29): a la derecha de Opinar, redondo, con los tres reguladores. */
+.modos-derecha{display:flex;align-items:center;gap:8px}
+.ajustes-btn{width:44px;padding:0;justify-content:center}
 .ico-btn.con-texto{display:flex;gap:7px;width:auto;padding:0 13px;font-size:13px;font-weight:600}
 .fin-opinar{display:flex;align-items:center;justify-content:center;gap:7px;margin:6px auto 0;padding:8px 10px;
   background:none;border:0;font:inherit;font-size:14px;font-weight:600;color:#F79A1F;cursor:pointer}
@@ -741,6 +744,9 @@ footer .sem{font-variant-numeric:tabular-nums}
   padding:10px 18px calc(16px + var(--sa-abajo));display:flex;flex-direction:column;gap:12px;
   box-shadow:0 -12px 30px rgba(0,0,0,.55);transform:translateY(100%);transition:transform .25s ease-out}
 #privacidad.abierta,#ajustes.abierta{transform:none}
+/* Privacidad se abre también desde Ajustes (v11.29): va por encima. */
+#privacidad-fondo{z-index:38}
+#privacidad{z-index:39}
 .priv-texto{display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
 .priv-texto p{font-size:14.5px;line-height:1.45;color:#c9b99c}
 .priv-texto b{color:#ede4d3}
@@ -748,11 +754,18 @@ footer .sem{font-variant-numeric:tabular-nums}
 #privacidad-ok:hover,#ajustes-ok:hover{background:#b3e392}
 /* Ajustes (v11.28): la misma hoja que privacidad. Una fila por ajuste, con su
    interruptor; de momento sólo la vibración. */
-.ajustes-lista{display:flex;flex-direction:column;gap:4px}
+.ajustes-lista{display:flex;flex-direction:column;gap:4px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
+/* «Sobre este juego» (v11.29): lo mismo que «Sobre esta app» de Comida Consciente. */
+.sobre-tit{margin-top:14px;font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#9a8d77}
+.sobre-txt{font-size:14px;line-height:1.45;color:#c9b99c;padding:8px 0}
+.sobre-txt b{color:#ede4d3}
+.ajuste-fila{all:unset;box-sizing:border-box;display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-bottom:1px solid #2c241a;font-size:16px;color:#ede4d3;cursor:pointer}
+.ajuste-fila:focus-visible{outline:2px solid #9fd67a;outline-offset:2px;border-radius:4px}
+.ajuste-fila svg{flex:none}
 .ajuste{display:flex;align-items:center;gap:14px;padding:10px 0;border-bottom:1px solid #2c241a}
 .ajuste .txt{flex:1;display:flex;flex-direction:column;gap:2px}
 .ajuste b{font-size:16px;color:#ede4d3}
-.ajuste .txt span,.ajustes-nada{font-size:13px;line-height:1.35;color:#9a8d77}
+.ajuste .txt span{font-size:13px;line-height:1.35;color:#9a8d77}
 .interruptor{all:unset;flex:none;position:relative;width:50px;height:30px;border-radius:15px;background:#3a3125;cursor:pointer;transition:background .2s}
 .interruptor::after{content:'';position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:12px;background:#c9b99c;transition:transform .2s,background .2s}
 .interruptor[aria-checked="true"]{background:#F79A1F}
@@ -940,7 +953,12 @@ footer .sem{font-variant-numeric:tabular-nums}
       <button class="subir" id="subir-inicio"><svg width="14" height="9" viewBox="0 0 22 14" aria-hidden="true"><path d="M3 11l8-8 8 8" stroke="currentColor" stroke-width="2.8" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Inicio</button>
       <!-- Opinar (v11.16, §5.109): arriba a la derecha, en la barra fija; se ve en
            cualquier móvil sin bajar. Hasta la v11.15, un grupo al final de los modos. -->
-      <button class="subir opinar-btn" id="opinar-inicio" hidden><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5V17.5H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z"/></svg>Opinar</button>
+      <div class="modos-derecha">
+        <button class="subir opinar-btn" id="opinar-inicio" hidden><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h16a1.5 1.5 0 0 1 1.5 1.5v9a1.5 1.5 0 0 1-1.5 1.5H10l-4.5 3.5V17.5H4A1.5 1.5 0 0 1 2.5 16V7A1.5 1.5 0 0 1 4 5.5z"/></svg>Opinar</button>
+        <!-- Ajustes (v11.29): el icono de tres reguladores, el mismo que en La Última Gota.
+             Sólo en los modos; en la portada no. -->
+        <button class="subir ajustes-btn" id="ajustes-inicio" aria-label="Ajustes"><svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h16M4 12h16M4 18h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><circle cx="9" cy="6" r="2.4" fill="#1c1710" stroke="currentColor" stroke-width="2.2"/><circle cx="15.5" cy="12" r="2.4" fill="#1c1710" stroke="currentColor" stroke-width="2.2"/><circle cx="7.5" cy="18" r="2.4" fill="#1c1710" stroke="currentColor" stroke-width="2.2"/></svg></button>
+      </div>
     </div>
     <!-- El botón naranja en los modos (v11.13, CR-14): lo mismo que el de la portada,
          con un título pequeño según el caso. Lo rellena pintarPrincipal(). -->
@@ -997,7 +1015,7 @@ footer .sem{font-variant-numeric:tabular-nums}
     </button>
 
     <!-- La versión y la privacidad (v11.20, §5.114), al final de todo. -->
-    <p class="modos-pie"><span id="inicio-version"></span>·<button class="enlace-priv" id="ajustes-inicio">Ajustes</button>·<button class="enlace-priv" id="privacidad-inicio">Privacidad</button></p>
+    <p class="modos-pie"><span id="inicio-version"></span>·<button class="enlace-priv" id="privacidad-inicio">Privacidad</button></p>
   </div>
 </section>
 
@@ -1493,8 +1511,8 @@ footer .sem{font-variant-numeric:tabular-nums}
   <button type="button" class="op-enviar" id="privacidad-ok">Entendido</button>
 </div>
 
-<!-- Ajustes (v11.28): desde el pie de los modos. Aquí irá lo que se pueda cambiar
-     (la paleta de colores…). -->
+<!-- Ajustes (v11.28; desde la v11.29, con el icono de la barra de los modos y con «Sobre
+     este juego»). Aquí irá lo que se pueda cambiar (la paleta de colores…). -->
 <div id="ajustes-fondo" hidden></div>
 <div id="ajustes" role="dialog" aria-modal="true" aria-labelledby="ajustes-titulo" hidden>
   <div class="hoja-asa"><span></span></div>
@@ -1505,7 +1523,12 @@ footer .sem{font-variant-numeric:tabular-nums}
       <span class="txt"><b id="ajuste-vibracion-nombre">Vibración</b><span>Al cosechar, al fallar y al acabar la partida.</span></span>
       <button type="button" class="interruptor" id="ajuste-vibracion" role="switch" aria-checked="true" aria-labelledby="ajuste-vibracion-nombre"></button>
     </div>
-    <p class="ajustes-nada" id="ajustes-nada" hidden>En este dispositivo no hay nada que ajustar todavía: la vibración sólo funciona en móviles Android.</p>
+    <h3 class="sobre-tit">Sobre este juego</h3>
+    <p class="sobre-txt"><b>La Colmena</b> <span id="sobre-version"></span>. Un puzle de panal hexagonal: sube el panal y cosecha las abejas. Tus récords, tu historial y la partida a medias se guardan <b>sólo en este navegador</b>; no hay cuentas ni servidor.</p>
+    <button type="button" class="ajuste-fila" id="ajustes-privacidad">Privacidad <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <button type="button" class="ajuste-fila" id="ajustes-opinar" hidden>Opinar <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <p class="sobre-txt">© 2026 Iñigo Caraballo. Todos los derechos reservados. El código se puede leer, no copiar ni modificar.</p>
+    <a class="ajuste-fila" id="ajustes-github" href="https://github.com/icaraballo/La_Colmena" target="_blank" rel="noopener">Código en GitHub <svg width="9" height="14" viewBox="0 0 10 16" aria-hidden="true"><path d="M2 2l6 6-6 6" stroke="#8c7f6a" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
   <button type="button" class="op-enviar" id="ajustes-ok">Hecho</button>
 </div>
@@ -1531,25 +1554,25 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.28"></script>
-<script src="js/state.js?v=11.28"></script>
-<script src="js/bot-tonto.js?v=11.28"></script>
-<script src="js/guardado.js?v=11.28"></script>
+<script src="js/constants.js?v=11.29"></script>
+<script src="js/state.js?v=11.29"></script>
+<script src="js/bot-tonto.js?v=11.29"></script>
+<script src="js/guardado.js?v=11.29"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.28"></script>
-<script src="js/render.js?v=11.28"></script>
-<script src="js/input.js?v=11.28"></script>
+<script src="js/historial.js?v=11.29"></script>
+<script src="js/render.js?v=11.29"></script>
+<script src="js/input.js?v=11.29"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.28"></script>
+<script src="js/puzles.js?v=11.29"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.28"></script>
+<script src="js/tutorial.js?v=11.29"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.28"></script>
-<script src="puzles/buscador.js?v=11.28"></script>
-<script src="puzles/juego.js?v=11.28"></script>
-<script src="js/pista.js?v=11.28"></script>
-<script src="js/vibracion.js?v=11.28"></script>
-<script src="js/app.js?v=11.28"></script>
+<script src="puzles/objetivos.js?v=11.29"></script>
+<script src="puzles/buscador.js?v=11.29"></script>
+<script src="puzles/juego.js?v=11.29"></script>
+<script src="js/pista.js?v=11.29"></script>
+<script src="js/vibracion.js?v=11.29"></script>
+<script src="js/app.js?v=11.29"></script>
 </body>
 </html>

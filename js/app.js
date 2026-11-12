@@ -588,14 +588,15 @@ function cerrarPrivacidad() {
   if (privacidadOrigen && document.contains(privacidadOrigen) && privacidadOrigen.offsetParent) privacidadOrigen.focus({ preventScroll: true });
   privacidadOrigen = null;
 }
-// Ajustes (v11.25): una hoja como la de privacidad, desde el pie de los modos. De
-// momento sólo la vibración; aquí irá lo que venga (la paleta de colores…).
+// Ajustes (v11.25): una hoja como la de privacidad, desde el icono de la barra de los
+// modos (v11.29; antes, el pie). La vibración y «Sobre este juego»; aquí irá lo que venga (la paleta de colores…).
 let ajustesAbiertos = false, ajustesOrigen = null, ajustesCierre = 0;
 function pintarAjustes() {
   const b = document.getElementById('ajuste-vibracion');
   b.setAttribute('aria-checked', String(vibracionOn));
   document.getElementById('ajuste-vibracion-fila').hidden = !puedeVibrar();
-  document.getElementById('ajustes-nada').hidden = puedeVibrar();
+  document.getElementById('sobre-version').textContent = VERSION;
+  document.getElementById('ajustes-opinar').hidden = !destinoOpinion();
 }
 function abrirAjustes() {
   cerrarPop();
@@ -2973,6 +2974,8 @@ window.addEventListener('DOMContentLoaded', () => {
   ['ajustes-cerrar', 'ajustes-ok', 'ajustes-fondo'].forEach(id =>
     document.getElementById(id).addEventListener('click', cerrarAjustes));
   document.getElementById('ajuste-vibracion').addEventListener('click', cambiarVibracion);
+  document.getElementById('ajustes-privacidad').addEventListener('click', abrirPrivacidad);   // encima de Ajustes
+  document.getElementById('ajustes-opinar').addEventListener('click', () => { cerrarAjustes(); abrirOpinion({ version: VERSION }); });
   pintarTarjeta();
   pintarEscalaExpansion('normal');
   pintarEscaleras();
