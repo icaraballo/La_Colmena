@@ -596,7 +596,6 @@ function pintarAjustes() {
   b.setAttribute('aria-checked', String(vibracionOn));
   document.getElementById('ajuste-vibracion-fila').hidden = !puedeVibrar();
   document.getElementById('sobre-version').textContent = VERSION;
-  document.getElementById('ajustes-opinar').hidden = !destinoOpinion();
 }
 function abrirAjustes() {
   cerrarPop();
@@ -2974,7 +2973,6 @@ window.addEventListener('DOMContentLoaded', () => {
   ['ajustes-cerrar', 'ajustes-ok', 'ajustes-fondo'].forEach(id =>
     document.getElementById(id).addEventListener('click', cerrarAjustes));
   document.getElementById('ajuste-vibracion').addEventListener('click', cambiarVibracion);
-  document.getElementById('ajustes-opinar').addEventListener('click', () => { cerrarAjustes(); abrirOpinion({ version: VERSION }); });
   pintarTarjeta();
   pintarEscalaExpansion('normal');
   pintarEscaleras();
