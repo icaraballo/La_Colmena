@@ -7,6 +7,9 @@ La web es el original: aquí no se edita el juego, sólo se copia y se empaqueta
 npm install      # la primera vez
 npm run apk      # APK firmado, para instalar en un móvil
 npm run aab      # AAB firmado, para Google Play
+
+Antes de fabricar pasa las pruebas de la web (`PRUEBAS` en `construir.mjs`); si alguna falla, no sale ni APK ni AAB.
+Para saltarlas en un caso urgente: `npm run apk -- --sin-tests` (avisa en voz alta).
 ```
 
 Necesita Java 21 y el Android SDK (plataforma 36). La clave de firma vive fuera del repo
