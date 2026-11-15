@@ -7,7 +7,13 @@ const partida = { modo: MODOS.INVIERNO, dificultad: 'normal' };
 // juego funciona igual, sólo que sin récord.
 const RECORD_KEY = 'colmena.records.v1';
 function leerRecords() {
-  try { return objetoOVacio(JSON.parse(localStorage.getItem(RECORD_KEY))); } catch { return {}; }
+  try {
+    // Sólo valen los números enteros no negativos (v11.32): lo demás se olvida.
+    const r = {};
+    for (const [k, v] of Object.entries(objetoOVacio(JSON.parse(localStorage.getItem(RECORD_KEY)))))
+      if (Number.isInteger(v) && v >= 0) r[k] = v;
+    return r;
+  } catch { return {}; }
 }
 // Lo guardado sólo vale si es un objeto (no lista, número ni texto), como en las demás lecturas.
 function objetoOVacio(v) { return v && typeof v === 'object' && !Array.isArray(v) ? v : {}; }
@@ -622,6 +628,7 @@ function cambiarVibracion() {
   pintarAjustes();
   if (vibracionOn) vibrar('cosecha');   // para notar que vuelve
 }
+let opinionHastaMs = 0;
 async function enviarOpinion(e) {
   e.preventDefault();
   const form = document.getElementById('opinion-form'), boton = document.getElementById('opinion-enviar');
@@ -629,6 +636,7 @@ async function enviarOpinion(e) {
   for (const p of OPINION_PREGUNTAS) respuestas[p.entry] = form.elements[p.entry].value;
   const cuerpo = cuerpoOpinion(respuestas, opinionDatos || { version: VERSION });
   if (!cuerpo) { setText('opinion-aviso', 'Escribe algo en alguna pregunta antes de enviar.'); return; }
+  if (Date.now() < opinionHastaMs) { setText('opinion-aviso', 'Ya se ha enviado: espera un momento antes de mandar otra.'); return; }
   setText('opinion-aviso', '');
   boton.disabled = true; setText('opinion-enviar', 'Enviando…');
   try {
@@ -641,6 +649,8 @@ async function enviarOpinion(e) {
   }
   form.reset();
   form.hidden = true;
+  // 30 s sin poder reenviar (v11.32): frena el doble toque y los bucles.
+  opinionHastaMs = Date.now() + 30000;
   document.getElementById('opinion-gracias').hidden = false;
   document.getElementById('opinion-volver').focus({ preventScroll: true });
 }
@@ -984,7 +994,7 @@ function tarjetaVista(clave) {
 function marcarTarjeta(clave) {
   tarjetasMem[clave] = 1;
   try {
-    const v = JSON.parse(localStorage.getItem(TARJETAS_KEY)) || {};
+    const v = objetoOVacio(JSON.parse(localStorage.getItem(TARJETAS_KEY)));
     v[clave] = 1;
     localStorage.setItem(TARJETAS_KEY, JSON.stringify(v));
   } catch { /* sin localStorage, se queda en memoria */ }
@@ -1217,6 +1227,21 @@ function onCommit(cells) {
 
 // Bucle: el reloj de Contrarreloj corre en tiempo real, y las abejas y el ítem se animan.
 function frame(now) {
+  // v11.32: una excepción aquí no puede matar el bucle (el juego se quedaría
+  // congelado sin avisar): se cuenta, se avisa una vez y el fotograma siguiente
+  // se pide siempre.
+  try { fotograma(now); } catch (err) { avisarFallo(err); }
+  requestAnimationFrame(frame);
+}
+let falloAvisado = false;
+function avisarFallo() {
+  if (falloAvisado) return;
+  falloAvisado = true;
+  try { avisoAbajo('Algo ha fallado. Si el juego no responde, recarga la página.'); } catch { /* sin aviso */ }
+}
+window.addEventListener('error', avisarFallo);
+window.addEventListener('unhandledrejection', avisarFallo);
+function fotograma(now) {
   const dt = Math.min(0.25, (now - (ultimoFrame || now)) / 1000);
   ultimoFrame = now;
   // El reloj se para con la pestaña oculta, fuera de la partida y con la hoja
@@ -1233,7 +1258,6 @@ function frame(now) {
   while (destellos.length && now - destellos[0].t0 > 900) destellos.shift();
   if (pantalla === 'partida') redraw(now);
   else if (!document.hidden) moverFondo(now);
-  requestAnimationFrame(frame);
 }
 
 function resize() {
@@ -1415,7 +1439,10 @@ const numeroIntento = id => intentosDe(progresoPuzzle, id).total + (intento.id =
 // dibujan con la guía del tutorial (ui.guia, el punto rosa).
 const ayuda = { id: null, juego: null, pista: null, texto: '', textoEn: '', esperados: null };
 // Lo que puede tardar la pista antes de dar la respuesta aproximada (§5.98 (c)).
-const PISTA_MS = 4000;
+// En pantalla táctil, 1,5 s: el móvil es de 3 a 5 veces más lento y un bloqueo largo
+// asusta (v11.32).
+const PISTA_MS = matchMedia('(pointer: coarse)').matches ? 1500 : 4000;
+let buscandoPista = false;
 const nivelActual = () => PUZLES.find(x => x.id === S.puzle.id);
 const fallidosDe = id => intentosDe(progresoPuzzle, id).fallidos;
 const claveEstado = () => S.turn + ':' + S.height.join();
@@ -1443,11 +1470,19 @@ function guiaPuzzle() {
 // pinta «Buscando…» antes de buscar, por si tarda (en el móvil, raro que pase de 1 s).
 function pedirPista() {
   if (!S.puzle || enTutorial() || S.puzle.guiada) return;
+  if (buscandoPista) return;
   if (S.gameOver) deshacerPuzle();
   ayuda.pista = null;
+  buscandoPista = true;
+  document.getElementById('pz-pista').disabled = true;
   ponerAyuda('Buscando…');
   redraw();
   setTimeout(() => {
+    try { buscarPista(); } finally { buscandoPista = false; document.getElementById('pz-pista').disabled = false; }
+  }, 40);
+}
+function buscarPista() {
+  {
     if (!S.puzle) return;
     if (ayuda.juego === null || ayuda.id !== S.puzle.id) {
       ayuda.id = S.puzle.id;
@@ -1461,7 +1496,7 @@ function pedirPista() {
     } else if (r.aproximada) ponerAyuda(`Te saliste de la solución en el turno ${r.turno}: deshaz hasta ahí.`);
     else ponerAyuda(r.turno === 0 ? 'Desde aquí ya no se gana: reinicia el nivel.' : `Desde aquí ya no se gana: deshaz hasta el turno ${r.turno}.`);
     redraw();
-  }, 40);
+  }
 }
 
 function deshacerPuzle() {
@@ -2596,6 +2631,12 @@ function leerHistorialGuardado() {
 // Si no cabe, se quitan las jugadas de las más antiguas (primero las sin estrella)
 // y se reintenta: antes se pierde el detalle que la partida. En memoria siguen enteras.
 function guardarHistorial() {
+  // v11.32: con dos pestañas abiertas, cada una tiene su copia; antes de escribir se
+  // suma lo que la otra haya apuntado (por id, sin repetir).
+  try {
+    const otro = leerHistorial(JSON.parse(localStorage.getItem(HISTORIAL_KEY)));
+    for (const e of otro.partidas) apuntarEnHistorial(historial, e);
+  } catch { /* sin localStorage: sólo la memoria */ }
   try { localStorage.setItem(HISTORIAL_KEY, JSON.stringify(historial)); return; } catch { /* abajo */ }
   const copia = JSON.parse(JSON.stringify(historial));
   const con = copia.partidas.filter(e => e.jugadas)

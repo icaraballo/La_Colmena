@@ -1808,6 +1808,30 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   ok(/connect-src https:\/\/docs\.google\.com/.test(csp) && T.OPINION_FORM.startsWith('https://docs.google.com/'), 'la CSP deja enviar a opinar');
   ok(![...html.matchAll(/<script(?![^>]*\bsrc=)[^>]*>/g)].length, 'ningún <script> dentro del HTML');
   ok(!/\son[a-z]+="/.test(html), 'ningún onclick= ni parecido en el HTML');
+  // v11.32: todo lo local que carga index.html entra en la app de Android (copiar-web.mjs).
+  {
+    const copia = raiz('app-android/copiar-web.mjs');
+    const locales = [...html.matchAll(/(?:src|href)="([^"#?]+)/g)].map(m => m[1]).filter(r => !/^(https?:|data:|mailto:)/.test(r));
+    const entra = r => copia.includes("'" + r + "'") || copia.includes("'" + r.split('/')[0] + "'") ||
+      (r.includes('/') && copia.includes("'" + r.split('/').pop() + "'"));
+    ok(locales.length > 10 && locales.every(entra), 'todo lo que carga index.html lo copia copiar-web.mjs: ' + locales.filter(r => !entra(r)).join(' '));
+  }
+  // v11.32: lo guardado a mano que rompería el motor se rechaza.
+  {
+    const malo = (modo, mod) => { const g = JSON.parse(JSON.stringify(T.serializarPartida(T.createState(modo, 'normal', 7)))); mod(g.estado); return T.restaurarPartida(g); };
+    const CT = T.MODOS.CONTAGIO, CR = T.MODOS.CONTRARRELOJ;
+    ok(malo(CT, e => {}) !== null, 'una partida sin tocar se restaura');
+    ok(malo(CT, e => e.desastres.push({ tipo: 'capullo' })) === null, 'un capullo sin celda se rechaza');
+    ok(malo(CT, e => e.desastres.push({ tipo: 'seda', tiles: [0] })) === null, 'una seda sin «hasta» se rechaza');
+    ok(malo(CT, e => { e.item = { tile: 0, tipo: Object.keys(T.ITEM_INFO)[0] }; }) === null, 'un ítem sin «caduca» se rechaza');
+    ok(malo(CT, e => { e.failStreak = -9; }) === null, 'una racha de fallos negativa se rechaza');
+    ok(malo(CT, e => { e.score = -5; }) === null, 'una puntuación negativa se rechaza');
+    ok(malo(CR, e => { e.reloj = 99999999; }) === null, 'un reloj por encima del techo se rechaza');
+    const s = T.createState(CT, 'normal', 5);
+    s.desastres.push({ tipo: 'capullo', tile: 3, eclosiona: 99 });
+    s.huellas.push({ tipo: 'varroa', tiles: [3], proximo: 9 });
+    ok(T.celdasMarcadas(s) === 1, 'un capullo sobre una celda ya marcada no cuenta dos veces');
+  }
   // §2: se puede ampliar.
   ok(!/user-scalable\s*=\s*no/.test(html), 'el viewport no prohíbe ampliar');
   // §8: las soluciones de js/puzles.js no se leen en el fichero, pero el juego las descifra.

@@ -612,7 +612,8 @@ function limpiarHuellas(s, cells) {
 function celdasMarcadas(s) {
   let n = 0;
   for (const g of s.huellas) n += g.tiles.length;
-  return n + s.desastres.filter(d => d.tipo === 'capullo').length;
+  // Un capullo en una celda ya marcada no cuenta dos veces (v11.32).
+  return n + s.desastres.filter(d => d.tipo === 'capullo' && !marcada(s, d.tile)).length;
 }
 function penalizacionHuellas(s) { return celdasMarcadas(s) * HUELLA_RESTA; }
 // Los grupos que crecen al pasar el turno siguiente: parpadean para avisarlo,

@@ -84,10 +84,17 @@ function restaurarPartida(g) {
         g.tiles.length > 0 && g.tiles.every(celda) && esEntero(g.proximo))) return null;
     if (!esEntero(s.step) || s.step < 1 || !esEntero(s.turn) || s.turn < 0) return null;
     if (!s.heladas.every(celda)) return null;
-    if (s.item && (!celda(s.item.tile) || !ITEM_INFO[s.item.tipo])) return null;
+    if (s.item && (!celda(s.item.tile) || !ITEM_INFO[s.item.tipo] || !esEntero(s.item.caduca))) return null;
+    // v11.32: el capullo lleva su celda; la seda, hasta cuándo dura.
     if (!s.desastres.every(d => d && typeof d.tipo === 'string' &&
-        (d.tile === undefined || celda(d.tile)) &&
+        (d.tile === undefined ? d.tipo !== 'capullo' : celda(d.tile)) &&
+        (d.tipo !== 'seda' || esEntero(d.hasta)) &&
         (d.tiles === undefined || (Array.isArray(d.tiles) && d.tiles.every(celda))))) return null;
+    // Contadores y puntos: nunca negativos; el reloj, dentro de su techo.
+    for (const k of ['score', 'streak', 'failStreak', 'reloj', 'calmaHasta'])
+      if (typeof s[k] === 'number' && s[k] < 0) return null;
+    if (s.reloj > RELOJ_TECHO) return null;
+    if (s.step > tilesPlayable(s)) return null;
     s.rng = (s.rng >>> 0) || 1;
     return s;
   } catch {

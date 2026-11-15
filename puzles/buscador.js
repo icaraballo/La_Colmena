@@ -79,7 +79,7 @@ function buscarPrimera(juego, { maxProf = 12, maxMs = 60000 } = {}) {
   const t0 = Date.now();
   const stats = { estados: 0, podados: 0 };
   const fallo = new Map();
-  let agotado = false;
+  let agotado = false, pasos = 0;
   function probar(e, quedan) {
     if (quedan === 0) return null;
     if (juego.poda && juego.poda(e, quedan)) { stats.podados++; return null; }
@@ -89,11 +89,13 @@ function buscarPrimera(juego, { maxProf = 12, maxMs = 60000 } = {}) {
     const js = juego.jugadas(e);
     if (juego.ordenar) juego.ordenar(e, js);
     for (const j of js) {
+      // El reloj, cada 256 pasos y antes de aplicar la jugada, para que las ramas
+      // muertas también cuenten (v11.32); en el móvil, con 1024 se pasaba del tope más de 1 s.
+      if ((++pasos & 255) === 0 && Date.now() - t0 > maxMs) { agotado = true; return null; }
       const e2 = juego.aplicar(e, j);
       if (!e2) continue;
       if (juego.objetivo(e2)) return j;
-      // El reloj, cada 256 estados: en el móvil, con 1024 se pasaba del tope más de 1 s.
-      if ((++stats.estados & 255) === 0 && Date.now() - t0 > maxMs) { agotado = true; return null; }
+      stats.estados++;
       if (probar(e2, quedan - 1) !== null) return j;
       if (agotado) return null;
     }

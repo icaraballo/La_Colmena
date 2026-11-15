@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Editor de puzles · La Colmena</title>
+<!-- v11.32: sin red y sin nada de fuera. Esta página también se sirve en GitHub Pages. -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' file:; script-src 'self' file: 'unsafe-inline'; style-src 'unsafe-inline'; img-src 'self' data: blob:; connect-src 'none'; object-src 'none'; base-uri 'none'">
 <!--
   El editor de puzles (T-46b, F2 de LC-Instrucciones-Puzle). Se abre como fichero,
   igual que index.html (regla 4: scripts clásicos, sin módulos ni fetch). Carga el
@@ -226,6 +228,8 @@ textarea { width: 100%; min-height: 64px; background: var(--fondo); color: var(-
 <!-- El índice de lotes lo escribe `npm run puzles -- generar`. Si no existe, no hay lotes. -->
 <script src="salida/lotes.js"></script>
 <script>
+// Escapa lo que va a innerHTML (v11.32): lo que se pega o se lee de localStorage no es de fiar.
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 (function () {
 'use strict';
 // Todo dentro de una función: los nombres del motor (createState, drag, …) son
@@ -285,6 +289,7 @@ let actual = -1;            // índice en PUZLES del puzle abierto
 function cargarLote(nombre) {
   // Abierto como fichero no hay fetch: el lote es un script que define window.LOTE.
   window.LOTE = undefined;
+  if (!/^[A-Za-z0-9_-]+$/.test(nombre)) { $('cuenta-lote').textContent = 'Nombre de lote no válido'; return; }
   const sc = document.createElement('script');
   sc.src = `salida/${nombre}.js`;
   sc.onload = () => {
@@ -540,7 +545,7 @@ function pintarSeleccion() {
     html += `<div class="capitulo"><h3>${c === 0 ? 'Capítulo 0 · Tutorial' : 'Capítulo ' + c} · ${ids.length}</h3><ol>`;
     ids.forEach((id, k) => {
       const v = guardado.valoraciones[id], p = v.puzle;
-      html += `<li><span class="que" data-abrir="${id}" title="${p.frase}"><b>${id.slice(-2)}</b> <span>${TIPO_NOMBRE[p.tipo]} · ${p.minimo} t · ${DIF_TXT[v.dificultad]}</span></span>` +
+      html += `<li><span class="que" data-abrir="${esc(id)}" title="${esc(p.frase)}"><b>${esc(id.slice(-2))}</b> <span>${esc(TIPO_NOMBRE[p.tipo])} · ${p.minimo} t · ${DIF_TXT[v.dificultad]}</span></span>` +
         `<button class="mini" data-subir="${c}:${k}" aria-label="Subir" ${k === 0 ? 'disabled' : ''}>↑</button>` +
         `<button class="mini" data-bajar="${c}:${k}" aria-label="Bajar" ${k === ids.length - 1 ? 'disabled' : ''}>↓</button></li>`;
     });
@@ -588,7 +593,7 @@ const pct = x => (Math.round(x * 1000) / 10).toLocaleString('es-ES') + ' %';
 function mostrarEvaluador() {
   const p = P(), e = p.eval;
   if (!e) { $('evaluador').innerHTML = 'Este lote se generó sin nota (<code>--sin-nota</code>).'; $('evaluador').hidden = false; return; }
-  $('evaluador').innerHTML = `El evaluador lo puso como <b>${e.nota}</b>. Un jugador que elige al azar sin perder en el mismo turno lo resuelve en el mínimo el ${pct(e.prudente.dificil)} de las veces, y con dos turnos de margen el ${pct(e.prudente.facil)}. Primeras jugadas que todavía llevan a la solución: ${e.primeras.buenas} de ${e.primeras.total}. Soluciones distintas en ${p.minimo} turnos: ${p.caminos.toLocaleString('es-ES')}.`;
+  $('evaluador').innerHTML = `El evaluador lo puso como <b>${esc(e.nota)}</b>. Un jugador que elige al azar sin perder en el mismo turno lo resuelve en el mínimo el ${pct(e.prudente.dificil)} de las veces, y con dos turnos de margen el ${pct(e.prudente.facil)}. Primeras jugadas que todavía llevan a la solución: ${e.primeras.buenas} de ${e.primeras.total}. Soluciones distintas en ${p.minimo} turnos: ${p.caminos.toLocaleString('es-ES')}.`;
   $('evaluador').hidden = false;
   $('fila-evaluador').hidden = true;
 }
