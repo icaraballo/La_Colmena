@@ -1830,7 +1830,7 @@ eq(T.bonusMultiplier(24), 14, 'bonus del tablero entero');
   // El juego y el README dicen lo mismo: las frases clave, en los dos.
   const plano = t => t.replace(/<[^>]+>|\*\*|`/g, '').replace(/\s+/g, ' ');
   const hoja = plano((/<div class="priv-texto">([\s\S]*?)<\/div>/.exec(html) || [])[1] || '');
-  for (const f of ['no tiene servidor, ni cuentas, ni analítica, ni cookies', 'Si borras los datos del sitio, se borran',
+  for (const f of ['no tiene servidor, ni cuentas, ni analítica, ni cookies', 'Si borras los datos del sitio o desinstalas la app, se borran',
                    'formulario de Google', 'Tu nombre y tu contacto, sólo si los escribes', 'ven tu dirección IP'])
     ok(hoja.includes(f) && plano(readme).includes(f), `privacidad: «${f}», en el juego y en el README`);
 }

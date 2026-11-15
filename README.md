@@ -82,10 +82,12 @@ puzles/           la máquina de puzles                     · npm run puzles --
 
 La Colmena **no tiene servidor, ni cuentas, ni analítica, ni cookies**.
 
-- Tus récords, tu historial y la partida a medias se guardan **sólo en tu navegador**
-  (`localStorage`). Si borras los datos del sitio, se borran.
+- Tus récords, tu historial y la partida a medias se guardan **sólo en tu dispositivo**
+  (`localStorage`, en el navegador o dentro de la app). Si borras los datos del sitio o desinstalas la app, se borran.
 - Si mandas una opinión desde el juego, va a un **formulario de Google** con la versión del juego
-  y el código de la partida. Tu nombre y tu contacto, sólo si los escribes.
+  y el código de la partida. Tu nombre y tu contacto, sólo si los escribes. Lo recibe Google LLC y se
+  guarda mientras sirva para mejorar el juego o hasta que se pida borrarlo. La app sólo pide permiso de
+  internet (para opinar) y de vibración.
 - GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.
 
 Lo mismo se lee dentro del juego («Privacidad», al pie de los modos y en la hoja de opinar) y en
