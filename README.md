@@ -89,6 +89,7 @@ La Colmena **no tiene servidor, ni cuentas, ni analítica, ni cookies**.
   guarda mientras sirva para mejorar el juego o hasta que se pida borrarlo. La app sólo pide permiso de
   internet (para opinar) y de vibración.
 - GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.
+- **Para borrar una opinión**, escribe a inigo.caraballo.apps@gmail.com (o desde «Opinar») con el asunto «Borrar datos de La Colmena» y dime la fecha aproximada. Se borra en un máximo de 30 días, con el nombre, el contacto y el código de partida que iban con ella.
 
 Lo mismo se lee dentro del juego («Privacidad», al pie de los modos y en la hoja de opinar) y en
 [privacidad.html](https://icaraballo.github.io/La_Colmena/privacidad.html), la dirección que usa Google Play.
