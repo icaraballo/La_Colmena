@@ -747,6 +747,7 @@ footer .sem{font-variant-numeric:tabular-nums}
 .priv-texto{display:flex;flex-direction:column;gap:10px;overflow-y:auto;min-height:0;touch-action:pan-y;overscroll-behavior:contain}
 .priv-texto p{font-size:14.5px;line-height:1.45;color:#c9b99c}
 .priv-texto b{color:#ede4d3}
+.priv-texto a{color:#ede4d3;text-decoration:underline}
 #privacidad-ok,#ajustes-ok{background:#9fd67a;color:#16210d}
 #privacidad-ok:hover,#ajustes-ok:hover{background:#b3e392}
 /* Ajustes (v11.28): la misma hoja que privacidad. Una fila por ajuste, con su
@@ -1502,7 +1503,7 @@ footer .sem{font-variant-numeric:tabular-nums}
     <p>Tus récords, tu historial y la partida a medias se guardan <b>sólo en tu dispositivo</b> (en el navegador o dentro de la app). Si borras los datos del sitio o desinstalas la app, se borran.</p>
     <p>Si mandas una opinión, va a un <b>formulario de Google</b> (Google LLC) con la versión del juego y el código de la partida. Tu nombre y tu contacto, sólo si los escribes. Se guarda mientras sirva para mejorar el juego o hasta que pidas borrarla.</p>
     <p>GitHub, que aloja la página, y Google, al opinar, ven tu dirección IP, como cualquier web.</p>
-    <p><b>Para borrar una opinión</b>, escribe a inigo.caraballo.apps@gmail.com (o desde «Opinar») con el asunto «Borrar datos de La Colmena» y dime la fecha aproximada. Se borra en un máximo de 30 días, con el nombre, el contacto y el código de partida que iban con ella.</p>
+    <p><b>Para borrar una opinión</b>, escribe a inigo.caraballo.apps@gmail.com (o desde «Opinar») con el asunto «Borrar datos de La Colmena» y la fecha aproximada. Se borra todo lo que se envió con ella, también de cualquier copia, en un máximo de 30 días. Más detalle: <a href="https://icaraballo.github.io/La_Colmena/privacidad.html#borrar-datos" target="_blank" rel="noopener">Borrar tus datos</a>.</p>
   </div>
   <button type="button" class="op-enviar" id="privacidad-ok">Entendido</button>
 </div>
@@ -1548,25 +1549,25 @@ footer .sem{font-variant-numeric:tabular-nums}
 <!-- La versión en cada script (v11.14, T-56): justo después de un push, un móvil
      podía quedarse con unos ficheros nuevos y otros viejos de la caché. Tiene que
      coincidir con VERSION (lo comprueba npm test). -->
-<script src="js/constants.js?v=11.32"></script>
-<script src="js/state.js?v=11.32"></script>
-<script src="js/bot-tonto.js?v=11.32"></script>
-<script src="js/guardado.js?v=11.32"></script>
+<script src="js/constants.js?v=11.33"></script>
+<script src="js/state.js?v=11.33"></script>
+<script src="js/bot-tonto.js?v=11.33"></script>
+<script src="js/guardado.js?v=11.33"></script>
 <!-- El código de partida y el historial (v11.4): funciones puras. -->
-<script src="js/historial.js?v=11.32"></script>
-<script src="js/render.js?v=11.32"></script>
-<script src="js/input.js?v=11.32"></script>
+<script src="js/historial.js?v=11.33"></script>
+<script src="js/render.js?v=11.33"></script>
+<script src="js/input.js?v=11.33"></script>
 <!-- Los niveles del modo Puzzle (v11): sólo datos, los escribe `npm run puzles -- meter`. -->
-<script src="js/puzles.js?v=11.32"></script>
+<script src="js/puzles.js?v=11.33"></script>
 <!-- El tutorial (v11.2): sus ocho niveles, sólo datos, aparte de los de Puzzle. -->
-<script src="js/tutorial.js?v=11.32"></script>
+<script src="js/tutorial.js?v=11.33"></script>
 <!-- La pista de Puzzle (v11.10, T-54): el resolutor de la máquina, tal cual, y
      lo que lo usa. Se carga para todos; sólo busca al pedir una pista. -->
-<script src="puzles/objetivos.js?v=11.32"></script>
-<script src="puzles/buscador.js?v=11.32"></script>
-<script src="puzles/juego.js?v=11.32"></script>
-<script src="js/pista.js?v=11.32"></script>
-<script src="js/vibracion.js?v=11.32"></script>
-<script src="js/app.js?v=11.32"></script>
+<script src="puzles/objetivos.js?v=11.33"></script>
+<script src="puzles/buscador.js?v=11.33"></script>
+<script src="puzles/juego.js?v=11.33"></script>
+<script src="js/pista.js?v=11.33"></script>
+<script src="js/vibracion.js?v=11.33"></script>
+<script src="js/app.js?v=11.33"></script>
 </body>
 </html>
